@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Telling reservedeler 581</title>
+<style>
+/* Styl Doka (shop.doka.com: niebieski #004588, żółty #FFDD00, grafit #2B2B2B, kwadratowe przyciski, nagłówki wersalikami)
+   Układ jak Nordiska CRM: białe karty, etykiety-eyebrow, zakładki, panel admina z menu bocznym na PC */
+:root{
+  --navy:#004588; --navy-d:#00376D; --navy-soft:#E8EFF7; --yellow:#FFDD00; --yellow-soft:#FFF8CC;
+  --bg:#F2F3F5; --card:#FFFFFF; --ink:#2B2B2B; --muted:#6B7280; --line:#DCDFE4; --line-s:#C9CED6;
+  --ok:#1E7B4A; --ok-soft:#E4F4EB; --warn:#B45309; --warn-soft:#FEF0DC; --bad:#C0261B; --bad-soft:#FDE8E6;
+  --s0:#004588; --s1:#B45309; --s2:#6B3FA0;
+  --r:4px; --w:560px;
+  --shadow:0 1px 3px rgba(16,24,40,.07),0 1px 2px rgba(16,24,40,.04);
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:#E4E6EA;color:var(--ink);font:16px/1.4 var(--font)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.02em}
+
+.app{max-width:var(--w);margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--bg);display:flex;flex-direction:column;box-shadow:0 0 0 1px var(--line)}
+.app.wide{--w:1100px}
+.screen{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+
+/* --- nagłówek: biały pasek z logo Doka, żółta linia, tytuł niebieskimi wersalikami --- */
+.bar{background:#fff;color:var(--ink);padding:10px 16px 12px;position:sticky;top:0;z-index:5;border-bottom:4px solid var(--yellow);box-shadow:0 2px 6px rgba(16,24,40,.06)}
+.bar .row{display:flex;align-items:center;gap:10px;min-height:36px}
+.bar .brand{display:flex;align-items:center;gap:10px;white-space:nowrap;min-width:0}
+.bar .brand img{height:38px;width:auto;display:block;margin:-6px -4px -6px -8px}
+.bar .brand .wm{font-weight:800;font-size:20px;color:var(--navy);letter-spacing:-.01em}
+.bar .brand .lg{padding-left:10px;border-left:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);line-height:1.15}
+.bar .brand .lg b{display:block;color:var(--ink);font-size:13px;letter-spacing:.04em}
+.bar .meta{font-size:13px;color:var(--muted);margin-left:auto;text-align:right;font-weight:600;line-height:1.3}
+.bar h2{margin:10px 0 0;font-size:21px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.01em;line-height:1.15}
+.bar h2 span{text-transform:none;color:var(--muted)!important;opacity:1!important}
+.back{width:36px;height:36px;border-radius:var(--r);background:var(--bg);display:grid;place-items:center;color:var(--navy);font-size:22px;font-weight:700;flex:0 0 auto;border:1px solid var(--line)}
+.progress{height:6px;background:#E6E8EC;border-radius:2px;margin-top:10px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--navy);border-radius:2px;transition:width .25s}
+.content{flex:1 1 auto;padding:14px 14px 24px}
+.foot{position:sticky;bottom:0;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);display:flex;gap:10px;z-index:4}
+
+/* --- przyciski Doka: kwadratowe, pogrubione wersaliki --- */
+.btn{min-height:52px;border-radius:var(--r);padding:0 16px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;text-transform:uppercase;letter-spacing:.04em;font-size:15px}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.primary:active{background:var(--navy-d)}
+.btn.navy{background:var(--ink);color:#fff}
+.btn.ghost{background:#fff;border:1.5px solid var(--line-s);color:var(--navy)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.small{min-height:40px;font-size:13px;padding:0 12px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45}
+.grow{flex:1}
+.link{color:var(--navy);text-decoration:underline;font-size:14px;padding:6px;font-weight:600}
+
+label.lbl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:4px 2px 6px;text-transform:uppercase;letter-spacing:.12em}
+.field{width:100%;height:52px;border:1.5px solid var(--line-s);border-radius:var(--r);padding:0 14px;background:#fff;font-size:18px;color:var(--ink)}
+.field:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(0,69,136,.14)}
+.banner{border-radius:var(--r);padding:10px 12px;font-size:14px;margin-bottom:10px}
+.banner.test{background:var(--yellow-soft);border-left:5px solid var(--yellow)}
+.banner.bad{background:var(--bad-soft);color:var(--bad);border-left:5px solid var(--bad);font-weight:700}
+.banner.info{background:var(--navy-soft);border-left:5px solid var(--navy)}
+
+.chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chip{padding:8px 12px;border-radius:var(--r);background:#fff;border:1.5px solid var(--line);font-size:13px;font-weight:700;color:var(--muted)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* --- kafelki sektorów (jak karty kursów w CRM) --- */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.tile{background:var(--card);border-radius:var(--r);padding:12px 14px 14px;text-align:left;border:1px solid var(--line);border-top:4px solid var(--navy);box-shadow:var(--shadow);min-height:112px;display:flex;flex-direction:column}
+.tile:active{transform:scale(.98)}
+.tile .nm{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+.tile .code{font-size:25px;font-weight:800;color:var(--navy);line-height:1.15;margin-top:2px}
+.tile .cnt{margin-top:auto;font-size:13px;color:var(--muted);font-weight:600}
+.tile .mini{height:5px;background:#E6E8EC;border-radius:2px;margin-top:6px;overflow:hidden}
+.tile .mini i{display:block;height:100%;background:var(--navy)}
+.tile.done{border-top-color:var(--ok);background:var(--ok-soft);border-color:#BFE3CE}
+.tile.done .mini i{background:var(--ok)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:.04em}
+.pill.ok{background:var(--ok);color:#fff}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+
+.sticky{position:sticky;top:var(--barh,0px);background:var(--bg);padding:2px 0 10px;z-index:3}
+.search{position:relative;flex:1}
+.search input{padding-left:42px}
+.search span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.scanbtn{flex:0 0 52px;height:52px;border-radius:var(--r);background:var(--yellow);color:var(--navy);display:grid;place-items:center}
+.scanbtn svg{width:28px;height:28px}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{background:var(--card);border-radius:var(--r);padding:11px 12px 11px 14px;display:flex;align-items:center;gap:12px;text-align:left;width:100%;border:1px solid var(--line);border-left:5px solid var(--line-s);box-shadow:var(--shadow)}
+.item .t{flex:1;min-width:0}
+.item .nr{font-size:13px;color:var(--muted)}
+.item .na{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.item .q{min-width:64px;text-align:right;font-size:22px;font-weight:800;color:#B8BEC8}
+.item.counted{border-left-color:var(--ok)}
+.item.extra{border-left-color:var(--warn)}
+.qq{display:flex;flex-direction:column;align-items:flex-end;min-width:76px;gap:1px}
+.qq span{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+.qq b{font-size:20px;margin-left:4px}
+.c0{color:var(--s0)}.c1{color:var(--s1)}.c2{color:var(--s2)}
+.empty-state{text-align:center;color:var(--muted);padding:26px 10px}
+
+/* --- arkusz od dołu (wpis numeru i ilości) --- */
+.scrim{position:fixed;inset:0;background:rgba(20,28,40,.5);display:none;z-index:10}
+.scrim.open{display:block}
+.sheet{position:fixed;left:50%;bottom:0;width:min(100%,560px);background:var(--card);border-radius:10px 10px 0 0;border-top:4px solid var(--yellow);z-index:11;transform:translate(-50%,105%);transition:transform .22s ease;padding:10px 14px calc(14px + env(safe-area-inset-bottom));max-height:94vh;overflow:auto}
+.sheet.open{transform:translate(-50%,0)}
+.grab{width:44px;height:4px;background:var(--line-s);border-radius:2px;margin:2px auto 10px}
+.sh-head{display:flex;gap:10px;align-items:flex-start}
+.sh-head .nr{color:var(--muted);font-size:13px;font-weight:600}
+.sh-head .na{font-weight:700;font-size:18px;line-height:1.25;color:var(--ink)}
+.xbtn{background:var(--bg);color:var(--navy)}
+.tabs{display:flex;background:#E6E8EC;border-radius:var(--r);padding:3px;margin:10px 0}
+.tabs button{flex:1;padding:9px;border-radius:3px;font-weight:700;color:var(--muted);font-size:14px}
+.tabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.nb{display:grid;gap:8px}
+.nbx{border-radius:var(--r);padding:10px 12px;text-align:right;background:var(--bg);border:2px solid var(--line);display:flex;flex-direction:column;min-height:96px}
+.nbx .lab{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--muted)}
+.nbx .lab i{font-style:normal;width:22px;height:22px;border:2px solid currentColor;border-radius:2px;display:grid;place-items:center;font-size:12px}
+.nbx .ex{font-size:13px;opacity:.8;min-height:18px;margin-top:4px;word-break:break-all}
+.nbx b{font-size:32px;line-height:1.05;margin-top:auto}
+.nbx.on{color:#fff}
+.nbx.on .lab{color:#fff}
+.nbx.on b{color:var(--yellow)}
+.nbx.s0.on{background:var(--s0);border-color:var(--s0)}
+.nbx.s1.on{background:var(--s1);border-color:var(--s1)}
+.nbx.s2.on{background:var(--s2);border-color:var(--s2)}
+.nbx.s0:not(.on) b{color:var(--s0)}.nbx.s1:not(.on) b,.nbx.s1:not(.on) .lab{color:var(--s1)}.nbx.s2:not(.on) b,.nbx.s2:not(.on) .lab{color:var(--s2)}
+.nbsum{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:6px 2px 0}
+.stsel{display:flex;gap:8px;align-items:center;margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:700;flex-wrap:wrap}
+.stsel button{padding:7px 14px;border-radius:var(--r);border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stsel button.on.s0{background:var(--s0);border-color:var(--s0);color:#fff}
+.stsel button.on.s1{background:var(--s1);border-color:var(--s1);color:#fff}
+.stsel button.on.s2{background:var(--s2);border-color:var(--s2);color:#fff}
+.wfields{display:grid;gap:8px}
+.wf{display:flex;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:var(--r);padding:10px 14px;text-align:left;width:100%}
+.wf.on{border-color:var(--navy);background:var(--navy-soft)}
+.wf span{font-size:14px;color:var(--muted);font-weight:600}
+.wf b{font-size:24px;color:var(--navy)}
+.wres{background:var(--yellow-soft);border-radius:var(--r);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-top:8px;border-left:4px solid var(--yellow)}
+.wres b{font-size:28px;color:var(--navy)}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.key{height:58px;border-radius:var(--r);background:#EEF0F3;font-size:26px;font-weight:700;color:var(--ink);border:1px solid #E1E4E9}
+.key:active{background:#D9DDE3}
+.key.op{background:var(--navy-soft);color:var(--navy);border-color:#D3E0EE}
+.key.ok{background:var(--yellow);color:var(--navy);font-size:18px;border-color:#F0CF00}
+.key.sm{font-size:15px}
+.skip{display:block;margin:10px auto 0;color:var(--muted);font-size:14px;text-decoration:underline}
+.serials{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.serials span{background:var(--bg);border-radius:2px;padding:5px 9px;font-size:13px;font-weight:700}
+
+/* --- ekran sektora --- */
+.entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.btn.big{min-height:84px;font-size:15px;flex-direction:column;gap:6px}
+.btn.big svg{width:30px;height:30px}
+.btn.big.navy{background:var(--navy)}
+.btn.big.primary{background:var(--yellow);color:var(--navy)}
+.sub{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:6px 2px 8px}
+.search.small input{height:46px;font-size:16px}
+.nrd{background:var(--navy);color:#fff;border-radius:var(--r);padding:12px 16px;min-height:96px;display:flex;flex-direction:column;justify-content:center;margin-top:10px;border-bottom:4px solid var(--yellow)}
+.nrd .res{font-size:38px;font-weight:800;color:var(--yellow);text-align:right;line-height:1.1;letter-spacing:.06em}
+.nrd .nmatch{font-size:15px;font-weight:700;margin-top:4px;min-height:21px;text-align:right}
+.nrd .nmatch.bad{color:#FFB4A8}
+.cands{display:grid;gap:6px;margin-top:8px}
+.cand{display:flex;gap:10px;align-items:center;background:var(--bg);border-radius:var(--r);padding:9px 12px;text-align:left;width:100%;border:1px solid var(--line)}
+.cand .mono{font-weight:700;color:var(--navy)}
+.cand .na{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.addnote{background:var(--yellow-soft);border-radius:var(--r);padding:8px 12px;font-size:14px;margin:8px 0 0;border-left:4px solid var(--yellow)}
+.backnr{font-size:14px;color:var(--navy);text-decoration:underline;padding:4px 0;margin-top:4px;font-weight:600}
+.sync{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:2px;margin-top:3px;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+.sync.ok{background:var(--ok);color:#fff}.sync.busy{background:var(--navy-soft);color:var(--navy)}
+.sync.offline,.sync.err{background:var(--yellow);color:var(--navy)}.sync.pin{background:var(--bad);color:#fff}
+.statusline{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:var(--r);padding:10px 12px;margin:12px 0 0;font-size:14px;border:1px solid var(--line)}
+.statusline .sync{margin:0}
+.statusline .sync.busy{background:var(--navy-soft);color:var(--navy)}
+
+/* --- panel admina (karty jak w CRM) --- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);border:1px solid var(--line);border-top:4px solid var(--navy)}
+.kpi span{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+.kpi b{display:block;font-size:28px;color:var(--navy);line-height:1.15;margin-top:4px}
+.kpi small{color:var(--muted);font-size:13px}
+.kpi.warn{border-top-color:var(--warn)}.kpi.bad{border-top-color:var(--bad)}.kpi.ok{border-top-color:var(--ok)}
+.kpi.warn b{color:var(--warn)}.kpi.bad b{color:var(--bad)}.kpi.ok b{color:var(--ok)}
+.st-ferdig{background:var(--ok);color:#fff}.st-pagar{background:var(--yellow);color:var(--ink)}.st-ikke{background:#E6E8EC;color:var(--muted)}
+.flag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;margin:1px 3px 1px 0;white-space:nowrap}
+.flag.bad{background:var(--bad-soft);color:var(--bad)}.flag.warn{background:var(--warn-soft);color:var(--warn)}.flag.info{background:var(--navy-soft);color:var(--navy)}
+td.pos{color:var(--ok)}td.neg{color:var(--bad)}
+.adm-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 10px}
+.adm-tools .search{max-width:360px}
+.card{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:12px;overflow-x:auto}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--navy);text-transform:uppercase;letter-spacing:.08em}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+.kv:last-child{border:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:700;padding:7px 6px;border-bottom:2px solid var(--navy);font-size:11px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;background:#FAFBFC}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#F7F9FC}
+td.n,th.n{text-align:right}
+td.n{font-weight:700}
+tr.conflict td{background:var(--bad-soft)}
+.drop{display:block;border:2px dashed #9AA3B2;border-radius:var(--r);padding:20px 14px;text-align:center;color:var(--muted);background:#fff;cursor:pointer}
+.drop b{color:var(--navy);font-size:17px}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
+.hint{font-size:13px;color:var(--muted);margin:8px 2px 0}
+.dlg p{margin:6px 0 12px;color:var(--muted)}
+.stack{display:grid;gap:8px}
+.ver{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+
+/* --- admin na PC: menu boczne jak w CRM --- */
+.app.adminwide{max-width:none;box-shadow:none}
+.adm-wrap{display:flex;min-height:100vh;min-height:100dvh}
+.adm-side{display:none}
+.adm-main{flex:1;min-width:0;display:flex;flex-direction:column}
+@media (min-width:1000px){
+  .adm-side{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;width:250px;flex:0 0 250px;padding:18px 14px 16px;background:#fff;border-right:1px solid var(--line);overflow-y:auto}
+  .adm-main .bar .brand{display:none}
+  .adm-main .bar .back{display:none}
+  .adm-main .content{max-width:1280px;width:100%;padding:20px 26px 30px}
+  .adm-main .foot{padding-left:26px;padding-right:26px}
+  .adm-main .atabs{display:none}
+}
+.sb-brand{padding:4px 8px 16px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.sb-brand img{width:180px;height:auto;display:block;margin:-10px 0 -8px -14px}
+.sb-brand .wm{font-weight:800;font-size:28px;color:var(--navy)}
+.sb-sub{margin-top:8px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.16em}
+.sb-nav{display:flex;flex-direction:column;gap:4px}
+.sb-group{margin:14px 10px 6px;color:#8A919C;font-size:10px;font-weight:800;letter-spacing:.14em}
+.sb-item{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:9px 12px;border-radius:var(--r);color:#4B5563;font-size:14px;font-weight:650;text-align:left;width:100%}
+.sb-item:hover:not(.on){background:var(--bg);color:var(--navy)}
+.sb-item.on{background:var(--navy-soft);color:var(--navy);font-weight:750}
+.sb-item.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;background:var(--yellow);border-radius:0 2px 2px 0}
+.sb-item em{font-style:normal;font-size:12px;font-weight:800;min-width:24px;padding:1px 7px;border-radius:2px;background:#E6E8EC;color:var(--muted);text-align:center}
+.sb-item.on em{background:var(--navy);color:#fff}
+.sb-item em.bad{background:var(--bad-soft);color:var(--bad)}.sb-item em.warn{background:var(--warn-soft);color:var(--warn)}
+.sb-foot{margin-top:auto;padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.sb-user{padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);display:flex;align-items:center;gap:10px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
+.sb-user b{display:block;font-size:13px;color:var(--ink)}.sb-user small{display:block;font-size:11px;color:var(--muted)}
+.credit{padding:0 10px;color:var(--muted)}
+.credit small{display:block;font-size:8px;font-weight:800;letter-spacing:.1em;color:#8A919C}
+.credit b{display:block;margin-top:2px;font-size:11px;color:#4B5563}
+
+.scanner{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,560px);background:#000;z-index:30;display:none;flex-direction:column;color:#fff}
+.scanner.open{display:flex}
+.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sc-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(rgba(0,0,0,.7),transparent);font-weight:700;font-size:17px}
+.sc-top .back{background:rgba(255,255,255,.16);border-color:transparent;color:#fff}
+.sc-top .sp{flex:1}
+.sc-frame{position:relative;z-index:1;flex:1;display:grid;place-items:center;pointer-events:none}
+.sc-frame i{width:78%;height:150px;border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);border:3px solid var(--yellow);position:relative}
+.sc-frame i::after{content:"";position:absolute;left:8%;right:8%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30;animation:scanline 1.6s ease-in-out infinite}
+@keyframes scanline{0%,100%{transform:translateY(-55px)}50%{transform:translateY(55px)}}
+.scanner.hit .sc-frame i{border-color:#34c759}
+.sc-bottom{position:relative;z-index:2;background:#fff;color:var(--ink);border-radius:10px 10px 0 0;border-top:4px solid var(--yellow);padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
+.sc-stat{font-weight:700;font-size:16px;color:var(--navy);min-height:24px}
+.sc-stat.warn{color:var(--bad)}
+.sc-sub{font-size:13px;color:var(--muted);margin:2px 0 10px}
+.sc-demo{display:grid;gap:6px;margin-bottom:10px}
+.sc-demo button{background:var(--bg);border-radius:var(--r);padding:10px 12px;text-align:left;font-size:14px}
+
+.toast{position:fixed;left:50%;top:96px;transform:translateX(-50%) translateY(-10px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:var(--r);border-left:4px solid var(--yellow);font-size:14px;font-weight:600;opacity:0;transition:.2s;z-index:40;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="app" id="app"><div class="screen" id="screen"></div></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"></div>
+<div class="scanner" id="scanner"></div>
+<div class="toast" id="toast"></div>
+
+<!--
+  ================= DATA =================
+  Alt som skal byttes ut mellom tellinger ligger her (eller importeres i Oppsett og bygges inn med "Last ned app-fil").
+  - statuser: 2 eller 3 statuser (f.eks. Ny / Brukt / R). kode brukes i filene, navn vises, merke = bokstav fra etiketten.
+  - sektorer: rekkefølgen på artiklene = rekkefølgen i listen på telefonen (hylle-rekkefølge).
+  - artikler: hele artikkelregisteret (artikkelnr -> navn), brukes til søk og skann.
+  - server.url: nettapp-adressen fra Google Apps Script (…/exec). Er den satt, sendes alt dit, og lister hentes fra arket.
+-->
+<script id="appdata" type="application/json">
+{
+ "versjon": "2026-11-03 v2 (lister fra Google Sheet)",
+ "lager": "581 Oslo",
+ "tittel": "Telling reservedeler",
+ "testdata": false,
+ "server": {
+  "url": "https://script.google.com/macros/s/AKfycbwI05P7vgTgkWmnoWl2khB7GXzFqzhEslOCLcj4BXKC9v_kF64Jy6thhwCcpQwX-Et_UQ/exec"
+ },
+ "statuser": [
+  {
+   "kode": "ny",
+   "navn": "Ny",
+   "merke": "N"
+  },
+  {
+   "kode": "brukt",
+   "navn": "Brukt",
+   "merke": "U"
+  }
+ ],
+ "sektorer": [],
+ "artikler": {}
+}
+</script>
+
+<script>
+(function(){
+"use strict";
+/* ================= OPPSTART ================= */
+const PRISTINE="<!doctype html>\n"+document.documentElement.outerHTML;
+const EMBEDDED=JSON.parse(document.getElementById("appdata").textContent);
+const KEY="telling_res_"+String(EMBEDDED.lager||"581").replace(/\W+/g,"_")+"_v1";
+const CFGKEY=KEY+"_cfg";
+const LOGO="https://shop.doka.com/shop/_ui/responsive/common/images/doka_logo.svg";
+const LOGO_IMG=w=>`<img src="${LOGO}" alt="Doka" ${w?`style="width:${w}px;height:auto"`:""} onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wm',textContent:'Doka'}))">`;
+const XLSX_URL="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+const STORAGE_OK=lsSet(KEY+"_t","1")&&(lsDel(KEY+"_t"),true);
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+let CFG=EMBEDDED, LOCALCFG=false;
+try{const c=JSON.parse(lsGet(CFGKEY));if(c&&Array.isArray(c.sektorer)){CFG=c;LOCALCFG=true}}catch(e){}
+
+function blankState(keep){return {v:1,name:keep?keep.name:"",device:keep?keep.device:"",pin:keep?keep.pin:"",st:null,seq:keep?keep.seq:0,counts:{},extraNames:{},done:{},serials:{},dirty:{}}}
+let S=null;try{S=JSON.parse(lsGet(KEY))}catch(e){}
+if(!S||S.v!==1) S=blankState();
+if(!S.device){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";S.device="T-"+Array.from({length:5},()=>a[Math.floor(Math.random()*a.length)]).join("")}
+S.dirty=S.dirty||{};
+{const m=location.hash.match(/pin=([^&]+)/);if(m){S.pin=decodeURIComponent(m[1]);try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}}
+const STATS=()=>(CFG.statuser&&CFG.statuser.length)?CFG.statuser:[{kode:"ny",navn:"Ny",merke:"N"},{kode:"brukt",navn:"Brukt",merke:"U"}];
+function fixSt(){if(!S.st||!STATS().some(x=>x.kode===S.st)) S.st=STATS()[0].kode}
+fixSt();
+function save(){if(!lsSet(KEY,JSON.stringify(S))) toast("ADVARSEL: telling ble ikke lagret!")}
+
+let view={screen:"start",sector:null,filter:"alle",q:""};
+let sheet={type:null};
+let merged=null, mergeTelling=null;
+
+/* ================= HJELPERE ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>Number(n||0).toLocaleString("nb-NO");
+const sidx=k=>Math.max(0,STATS().findIndex(s=>s.kode===k));
+const stName=k=>(STATS().find(s=>s.kode===k)||{navn:k}).navn;
+const sec=code=>CFG.sektorer.find(s=>s.kode===code);
+const nameOf=nr=>(CFG.artikler&&CFG.artikler[nr])||S.extraNames[nr]||"(ukjent artikkel)";
+const inRegister=nr=>!!(CFG.artikler&&CFG.artikler[nr]);
+function normNr(x){x=String(x==null?"":x).trim().replace(/\.0+$/,"");if(/^\d{5}$/.test(x)) x="0"+x;return x}
+function expected(code){const s=sec(code);return s?s.artikler:[]}
+/* forventet (fra liste) + alt som er registrert i sektoren */
+function itemsOf(code){
+  const exp=expected(code);const seen=new Set(exp);
+  return exp.map(nr=>({nr,na:nameOf(nr),extra:false})).concat(Object.keys(S.counts[code]||{}).filter(nr=>!seen.has(nr)).map(nr=>({nr,na:nameOf(nr),extra:true})));
+}
+const cnt=(code,nr)=>(S.counts[code]||{})[nr];
+const sers=(code,nr)=>((S.serials[code]||{})[nr]||[]);
+const totalOf=c=>STATS().reduce((a,s)=>a+(c.q[s.kode]||0),0);
+function stats(code){const exp=expected(code);return {reg:Object.keys(S.counts[code]||{}).length,exp:exp.length,expDone:exp.filter(nr=>cnt(code,nr)).length}}
+function knownPool(code){return [...new Set([...itemsOf(code).map(i=>i.nr),...Object.keys(CFG.artikler||{}),...Object.keys(S.extraNames)])]}
+function findKnown(code,raw){const nr=normNr(raw);if(!nr) return null;const z=x=>x.replace(/^0+/,"");const pool=knownPool(code);
+  return pool.find(x=>x===nr)||pool.find(x=>z(x)===z(nr))||null}
+function candidates(code,t){if(!t) return [];const exp=new Set(expected(code));
+  return knownPool(code).filter(nr=>nr.includes(t)).sort((a,b)=>(b.startsWith(t)-a.startsWith(t))||(exp.has(b)-exp.has(a))||(a.length-b.length)||a.localeCompare(b)).slice(0,5)}
+function findInRegister(raw){
+  const nr=normNr(raw);if(inRegister(nr)) return nr;
+  const k=Object.keys(CFG.artikler||{}).find(x=>x.replace(/^0+/,"")===nr.replace(/^0+/,""));return k||null;
+}
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1800)}
+function nowStr(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`}
+
+function evalExpr(e){
+  if(!e) return null;let sum=0;
+  for(const t of e.split("+")){ if(t==="") return null; let p=1;
+    for(const x of t.split("×")){ if(x==="") return null; p*=parseInt(x,10);} sum+=p;}
+  return sum;
+}
+
+/* ================= SKJERMER ================= */
+function render(){
+  const el=$("#screen");
+  $("#app").classList.toggle("wide",view.screen==="merge"||view.screen==="oppsett"||view.screen==="admin");
+  $("#app").classList.toggle("adminwide",view.screen==="admin"&&!!S.adminPin&&!!admin.data);
+  if(view.screen==="start") el.innerHTML=startHTML();
+  else if(view.screen==="sector") el.innerHTML=sectorHTML();
+  else if(view.screen==="export") el.innerHTML=exportHTML();
+  else if(view.screen==="merge") el.innerHTML=mergeHTML();
+  else if(view.screen==="oppsett") el.innerHTML=oppsettHTML();
+  else if(view.screen==="admin") el.innerHTML=adminHTML();
+  bindScreen();
+  const b=$(".bar");if(b) document.documentElement.style.setProperty("--barh",b.offsetHeight+"px");
+}
+function go(screen,extra){closeSheet();closeScanner();clearInterval(admin.timer);admin.timer=null;view=Object.assign({screen,sector:null,filter:"alle",q:""},extra||{});render();window.scrollTo(0,0)}
+
+function bar(title,{back=false,meta="",progress=null}={}){
+  return `<div class="bar"><div class="row">
+    ${back?`<button class="back" data-act="home" aria-label="Tilbake">‹</button>`:""}
+    <div class="brand">${LOGO_IMG()}<span class="lg">Lager<b>${esc(CFG.lager||"")}</b></span></div>
+    <div class="meta">${meta}</div></div>
+    <h2>${title}</h2>
+    ${progress!==null?`<div class="progress"><i style="width:${progress}%"></i></div>`:""}</div>`;
+}
+function banners(){
+  let h="";
+  if(!STORAGE_OK) h+=`<div class="banner bad">Denne nettleseren lagrer ikke data (privat modus?). Ikke tell her – åpne appen i vanlig Chrome.</div>`;
+  if(CFG.testdata) h+=`<div class="banner test"><b>TESTDATA.</b> Sektorlistene er eksempler – ikke bruk til ekte telling.</div>`;
+  if(LOCALCFG&&CFG.kilde!=="server") h+=`<div class="banner info">Lokal konfigurasjon (importert i Oppsett på denne enheten).</div>`;
+  if(serverUrl()&&syncState.status==="pin") h+=`<div class="banner bad">Feil kode – sjekk koden og skriv den inn på nytt.</div>`;
+  return h;
+}
+
+function startHTML(){
+  const tiles=CFG.sektorer.map(s=>{const st=stats(s.kode);const pct=st.exp?Math.round(st.expDone/st.exp*100):0;const d=S.done[s.kode];
+    return `<button class="tile ${d?"done":""}" data-sector="${esc(s.kode)}">
+      <span class="nm">Sektor</span><span class="code">${esc(s.kode)}</span>
+      <span class="cnt">${d?`<span class="pill ok">Ferdig</span> `:""}${st.reg} registrert</span>
+      ${st.exp?`<span class="mini" title="fra liste"><i style="width:${pct}%"></i></span>`:""}</button>`}).join("");
+  return bar("Velg sektor",{meta:esc(new Date().toLocaleDateString("nb-NO",{weekday:"long",day:"numeric",month:"short"}))})+
+  `<div class="content">${banners()}
+     <label class="lbl" for="nm">Ditt navn</label>
+     <input id="nm" class="field" placeholder="Fornavn" value="${esc(S.name)}" autocomplete="off">
+     ${serverUrl()&&(!S.pin||syncState.status==="pin")?`<label class="lbl" for="pin" style="margin-top:12px">Kode (fra Łukasz)</label>
+       <div style="display:flex;gap:8px"><input id="pin" class="field" inputmode="numeric" placeholder="Kode" value="${esc(S.pin)}" autocomplete="off"><button class="btn navy" data-act="pin-ok">OK</button></div>`:""}
+     ${serverUrl()&&S.pin&&syncState.status!=="pin"?`<div class="statusline"><span>Sendes til server · ${esc(S.device)}</span>${syncBadge()}</div>`:""}
+     ${tiles?`<div class="tiles">${tiles}</div>`:`<div class="empty-state">${serverUrl()?"Ingen sektorer ennå. Skriv koden for å hente listene.":"Ingen sektorer satt opp. Se Oppsett."}</div>`}
+     <p class="hint">Velg sektoren du teller. Alt lagres i telefonen etter hver registrering${serverUrl()?" og sendes til server så snart det er nett":" og fungerer uten nett"}.</p>
+     <div class="chips" style="justify-content:center;margin-top:14px">
+       <button class="link" data-act="merge">PC: slå sammen filer</button><button class="link" data-act="oppsett">Oppsett</button>${serverUrl()?`<button class="link" data-act="admin">Admin</button>`:""}</div>
+     <div class="ver">Dataversjon: ${esc(CFG.versjon||"–")}</div>
+   </div>
+   <div class="foot"><button class="btn ${serverUrl()?"ghost":"navy"} grow" data-act="export">${serverUrl()?"Reservekopi / eksporter fil":"Send / eksporter telling"}</button></div>`;
+}
+function sectorHTML(){
+  const code=view.sector;const st=stats(code);const hasExp=st.exp>0;
+  if(view.filter!=="mangler") view.filter="reg";
+  return bar(`${esc(code)} <span style="font-size:15px;font-weight:600;opacity:.8">· ${st.reg} reg.</span>`,{back:true,meta:`${esc(S.name||"Uten navn")}<br>${syncBadge()}`,progress:hasExp?Math.round(st.expDone/st.exp*100):null})+
+  `<div class="content">
+    <div class="entry">
+      <button class="btn navy big" data-act="enter"><span style="font-size:26px;line-height:1">123</span>Skriv artikkelnr</button>
+      <button class="btn primary big" data-act="scan"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 8V4h4M21 4h4v4M25 20v4h-4M7 24H3v-4"/><path d="M8 9v10M11 9v10M14.5 9v10M18 9v10M20.5 9v10" stroke-width="1.8"/></svg> Skann etikett</button>
+    </div>
+    ${hasExp?`<div class="tabs"><button class="${view.filter==="reg"?"on":""}" data-filter="reg">Registrert (${st.reg})</button><button class="${view.filter==="mangler"?"on":""}" data-filter="mangler">Fra liste – mangler (${st.exp-st.expDone})</button></div>`
+      :`<div class="sub">Registrert i sektoren (${st.reg})</div>`}
+    ${st.reg||hasExp?`<div class="search small" style="margin-bottom:10px"><span>⌕</span><input id="q" class="field" inputmode="search" placeholder="Søk i listen" value="${esc(view.q)}" autocomplete="off"></div>`:""}
+    <div class="list" id="list">${listHTML()}</div>
+  </div>
+  <div class="foot"><button class="btn primary block" data-act="finish">Sektor ferdig</button></div>`;
+}
+function filtered(){
+  const code=view.sector;const q=view.q.trim().toLowerCase();const exp=expected(code);let it;
+  if(view.filter==="mangler") it=exp.filter(nr=>!cnt(code,nr)).map(nr=>({nr,na:nameOf(nr),extra:false}));
+  else it=Object.entries(S.counts[code]||{}).sort((a,b)=>(b[1].n||0)-(a[1].n||0)).map(([nr])=>({nr,na:nameOf(nr),extra:exp.length>0&&!exp.includes(nr)}));
+  return q?it.filter(i=>i.nr.includes(q)||i.na.toLowerCase().includes(q)):it;
+}
+function qtyHTML(code,nr){
+  const c=cnt(code,nr);if(!c) return `<span class="q">–</span>`;
+  const ST=STATS();const parts=ST.map((s,i)=>c.q[s.kode]?`<span>${esc(s.navn)}<b class="c${i}">${fmt(c.q[s.kode])}</b></span>`:"").join("");
+  return `<span class="qq">${parts||`<span>Tom<b class="c0">0</b></span>`}${sers(code,nr).length?`<span style="font-weight:600">serienr</span>`:""}</span>`;
+}
+function listHTML(){
+  const code=view.sector;const it=filtered();
+  if(!it.length){
+    if(view.q.trim()) return `<div class="empty-state">Ingen treff.</div>`;
+    return view.filter==="mangler"?`<div class="empty-state">Alt fra listen er registrert.</div>`
+      :`<div class="empty-state">Ingen artikler registrert ennå.<br>Skriv eller skann artikkelnummeret.</div>`;
+  }
+  return it.map(i=>{const c=cnt(code,i.nr);
+    return `<button class="item ${c?"counted":""} ${i.extra?"extra":""}" data-nr="${esc(i.nr)}">
+      <span class="t"><span class="nr mono">${esc(i.nr)}${i.extra?' · <span class="pill warn">ikke på liste</span>':""}</span><span class="na">${esc(i.na)}</span></span>
+      ${qtyHTML(code,i.nr)}</button>`}).join("");
+}
+function exportHTML(){
+  const per={};exportItems().forEach(([code,i])=>{if(cnt(code,i.nr)) per[code]=(per[code]||0)+1});
+  const rows=Object.entries(per).map(([code,n])=>{const st=sec(code)?stats(code):null;
+    return `<div class="kv"><span>${esc(code)} ${S.done[code]?'<span class="pill ok">Ferdig</span>':'<span class="pill warn">Pågår</span>'}</span><b>${n} artikler</b></div>`}).join("");
+  const canShare=!!(navigator.canShare&&window.File&&(()=>{try{return navigator.canShare({files:[new File(["x"],"x.csv",{type:"text/csv"})]})}catch(e){return false}})());
+  return bar("Send telling",{back:true,meta:esc(S.name||"")})+
+  `<div class="content">
+    <div class="card"><h3>Innhold</h3>${rows||'<p class="hint">Ingenting talt ennå.</p>'}</div>
+    <div class="card"><h3>Filnavn</h3><div class="mono" style="font-size:14px;word-break:break-all">${esc(fileName())}</div>
+      <p class="hint">Send filen til Łukasz på Teams eller e-post. Tellingen blir liggende i telefonen til den slettes.</p></div>
+    <div class="stack">
+      ${canShare?`<button class="btn primary block" data-act="share" ${rows?"":"disabled"}>Del fil (Teams / e-post)</button>`:""}
+      <button class="btn ${canShare?"ghost":"primary"} block" data-act="download" ${rows?"":"disabled"}>Last ned fil (CSV)</button>
+      <button class="link" data-act="wipe" style="margin-top:14px;color:var(--bad)">Slett alle tellinger på denne telefonen…</button>
+    </div>
+  </div>`;
+}
+
+/* ================= CSV FRA TELEFON ================= */
+function fileName(){const d=nowStr().slice(0,10);return `Telling_${String(CFG.lager||"").split(" ")[0]}_reservedeler_${(S.name||"ukjent").trim().replace(/\s+/g,"_")}_${d}.csv`}
+const q=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
+function buildCSV(){
+  const ST=STATS();
+  const H=["sektor","artikkelnr","navn",...ST.map(s=>s.kode),"totalt",...ST.map(s=>"utregning_"+s.kode),"talt_av","tidspunkt","ikke_paa_listen",...ST.map(s=>"serienr_"+s.kode)];
+  const L=[H.join(";")];
+  exportItems().forEach(([code,i])=>{const c=cnt(code,i.nr);if(!c) return;const sl=sers(code,i.nr);
+    L.push([q(code),q(i.nr),q(i.na),...ST.map(x=>c.q[x.kode]||0),totalOf(c),...ST.map(x=>q(c.e[x.kode]||"")),q(c.by||""),q(c.ts||""),i.extra?"ja":"",
+      ...ST.map(x=>q(sl.filter(y=>y.st===x.kode).map(y=>y.sn).join(", ")))].join(";"))});
+  return "﻿"+L.join("\r\n");
+}
+/* Alle registreringer, også for sektorer/artikler som ikke lenger står i konfigurasjonen – ingenting skal forsvinne fra eksporten */
+function exportItems(){
+  const codes=CFG.sektorer.map(s=>s.kode);Object.keys(S.counts).forEach(k=>{if(!codes.includes(k)) codes.push(k)});
+  const out=[];codes.forEach(code=>{const seen=new Set();const s=sec(code);
+    itemsOf(code).forEach(i=>{seen.add(i.nr);out.push([code,i])});
+    Object.keys(S.counts[code]||{}).forEach(nr=>{if(!seen.has(nr)) out.push([code,{nr,na:nameOf(nr),extra:!(s&&s.artikler.includes(nr))}])});});
+  return out;
+}
+function downloadText(name,text,type){
+  try{const b=new Blob([text],{type:type||"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800);toast("Fil lagret: "+name)}
+  catch(e){toast("Nedlasting virker ikke her")}
+}
+async function shareCSV(){
+  try{const f=new File([buildCSV()],fileName(),{type:"text/csv"});await navigator.share({files:[f],title:fileName()})}
+  catch(e){if(e&&e.name!=="AbortError"){toast("Deling feilet – bruk Last ned");}}
+}
+
+/* ================= PC: SLÅ SAMMEN ================= */
+function parseDelimited(txt){
+  txt=txt.replace(/^﻿/,"");const first=txt.split(/\r?\n/)[0]||"";
+  const d=(first.match(/;/g)||[]).length>=(first.match(/,/g)||[]).length?";":(first.includes("\t")?"\t":",");
+  const rows=[];let row=[],cur="",inQ=false;
+  for(let i=0;i<txt.length;i++){const ch=txt[i];
+    if(inQ){ if(ch==='"'){ if(txt[i+1]==='"'){cur+='"';i++} else inQ=false } else cur+=ch; }
+    else if(ch==='"') inQ=true;
+    else if(ch===d){row.push(cur);cur=""}
+    else if(ch==="\n"||ch==="\r"){ if(ch==="\r"&&txt[i+1]==="\n") i++; row.push(cur);cur=""; if(row.some(x=>x!=="")) rows.push(row); row=[] }
+    else cur+=ch;}
+  row.push(cur);if(row.some(x=>x!=="")) rows.push(row);
+  return rows;
+}
+function parseCountFile(txt,fname){
+  const rows=parseDelimited(txt);if(!rows.length) return [];
+  const H=rows[0].map(h=>h.trim().toLowerCase());const ix=n=>H.indexOf(n);
+  if(ix("artikkelnr")<0||ix("sektor")<0) throw new Error(fname+": ikke en tellefil fra appen");
+  const ST=STATS();
+  return rows.slice(1).map(c=>{const o={fil:fname,telling:c[ix("telling")]||"1",sektor:c[ix("sektor")],nr:normNr(c[ix("artikkelnr")]),na:c[ix("navn")],talt_av:c[ix("talt_av")]||"",tid:c[ix("tidspunkt")]||"",q:{}};
+    ST.forEach(s=>{o.q[s.kode]=ix(s.kode)>=0?(parseInt(c[ix(s.kode)],10)||0):0});return o});
+}
+function mergeData(){
+  const ST=STATS();const rows=merged.rows;
+  const bySector={};rows.forEach(r=>{const b=bySector[r.sektor]=bySector[r.sektor]||{n:0,who:new Set(),files:new Set()};b.n++;b.who.add(r.talt_av);b.files.add(r.fil)});
+  const sum={};rows.forEach(r=>{const a=sum[r.nr]=sum[r.nr]||{nr:r.nr,na:r.na,q:{},per:{},conf:false};
+    ST.forEach(s=>a.q[s.kode]=(a.q[s.kode]||0)+r.q[s.kode]);
+    if(a.per[r.sektor]){a.conf=true;a.per[r.sektor].dup.push(r)} else a.per[r.sektor]={q:Object.assign({},r.q),dup:[r]};
+    if(a.per[r.sektor].dup.length>1) ST.forEach(s=>a.per[r.sektor].q[s.kode]+=r.q[s.kode]);});
+  const arr=Object.values(sum).sort((a,b)=>b.conf-a.conf||a.nr.localeCompare(b.nr));
+  const missing=[];CFG.sektorer.forEach(s=>s.artikler.forEach(nr=>{if(!rows.some(r=>r.sektor===s.kode&&r.nr===nr)) missing.push({sektor:s.kode,nr,na:nameOf(nr)})}));
+  return {ST,rows,bySector,arr,missing};
+}
+function mergeHTML(){
+  let body;
+  if(!merged){
+    body=`<label class="drop"><b>Velg tellefiler fra telefonene</b><br>CSV-filer fra appen – flere på en gang
+      <input type="file" id="files" accept=".csv,text/csv,text/plain" multiple style="display:none"></label>
+      <p class="hint">Filene leses bare her på PC-en, ingenting sendes noe sted.</p>`;
+  }else{
+    mergeTelling=null;
+    const {ST,bySector,arr,missing}=mergeData();const conf=arr.filter(a=>a.conf);
+    body=`
+      <div class="chips" style="margin:0 0 12px">
+        <span class="hint" style="margin:8px 0 0 auto">${merged.files.length} filer · ${merged.rows.length} linjer</span></div>
+      <div class="grid2">
+      <div class="card"><h3>Sektorer</h3><table><tr><th>Sektor</th><th>Talt av</th><th class="n">Linjer</th><th class="n">På liste</th></tr>
+        ${CFG.sektorer.map(s=>{const b=bySector[s.kode];return `<tr><td>${esc(s.kode)}</td><td>${b?esc([...b.who].join(", ")):'<span class="pill bad">mangler</span>'}</td><td class="n">${b?b.n:0}</td><td class="n">${s.artikler.length}</td></tr>`}).join("")}
+        ${Object.keys(bySector).filter(k=>!sec(k)).map(k=>`<tr><td>${esc(k)} <span class="pill warn">ukjent sektor</span></td><td>${esc([...bySector[k].who].join(", "))}</td><td class="n">${bySector[k].n}</td><td class="n">–</td></tr>`).join("")}
+      </table></div>
+      <div class="card"><h3>Kontroll</h3>
+        <div class="kv"><span>Talt to ganger i samme sektor</span><b style="color:${conf.length?"var(--bad)":"var(--ok)"}">${conf.length}</b></div>
+        <div class="kv"><span>Fra liste, ikke registrert</span><b style="color:${missing.length?"var(--warn)":"var(--ok)"}">${missing.length}</b></div>
+        <div class="kv"><span>Artikler totalt</span><b>${arr.length}</b></div>
+        ${missing.length?`<details style="margin-top:8px"><summary class="link">Vis (${missing.length})</summary><table style="margin-top:6px">${missing.map(m=>`<tr><td>${esc(m.sektor)}</td><td class="mono">${esc(m.nr)}</td><td>${esc(m.na)}</td></tr>`).join("")}</table></details>`:""}
+      </div></div>
+      <div class="card"><h3>Sum per artikkel</h3><table><tr><th>Art.nr</th><th>Navn</th><th>Per sektor (${ST.map(s=>esc(s.merke||s.navn)).join("/")})</th>${ST.map((s,i)=>`<th class="n c${i}">${esc(s.navn)}</th>`).join("")}<th class="n">Totalt</th></tr>
+        ${arr.map(a=>`<tr class="${a.conf?"conflict":""}"><td class="mono">${esc(a.nr)}</td><td>${esc(a.na)}${a.conf?' <span class="pill bad">talt 2×</span>':""}</td>
+          <td style="white-space:nowrap">${Object.entries(a.per).map(([sk,p])=>esc(sk)+": "+(p.dup.length>1?p.dup.map(r=>ST.map(s=>r.q[s.kode]).join("/")+" ("+esc(r.talt_av)+")").join(" + "):ST.map(s=>p.q[s.kode]).join("/"))).join("<br>")}</td>
+          ${ST.map((s,i)=>`<td class="n ${a.q[s.kode]?"c"+i:""}" style="${a.q[s.kode]?"":"color:#B8C0CE"}">${fmt(a.q[s.kode])}</td>`).join("")}<td class="n">${fmt(ST.reduce((x,s)=>x+a.q[s.kode],0))}</td></tr>`).join("")}</table></div>`;
+  }
+  return bar("Slå sammen tellinger",{back:true,meta:"PC"})+`<div class="content">${body}</div>`+
+    (merged?`<div class="foot"><button class="btn ghost" data-act="reset-merge">Nye filer</button><button class="btn primary grow" data-act="xlsx-merged">Last ned Excel</button></div>`:"");
+}
+function loadXLSX(){return new Promise((res,rej)=>{if(window.XLSX) return res(window.XLSX);const s=document.createElement("script");s.src=XLSX_URL;s.onload=()=>window.XLSX?res(window.XLSX):rej();s.onerror=rej;document.head.appendChild(s)})}
+async function exportMerged(){
+  const {ST,rows,arr,missing}=mergeData();const secs=CFG.sektorer.map(s=>s.kode);
+  const sumHead=["Artikkelnr","Navn",...ST.map(s=>s.navn),"Totalt",...secs.flatMap(k=>ST.map(s=>`${k} ${s.navn}`)),"Talt 2× i samme sektor"];
+  const sumRows=arr.map(a=>[a.nr,a.na,...ST.map(s=>a.q[s.kode]),ST.reduce((x,s)=>x+a.q[s.kode],0),...secs.flatMap(k=>ST.map(s=>a.per[k]?a.per[k].q[s.kode]:"")),a.conf?"JA":""]);
+  const lineHead=["Sektor","Artikkelnr","Navn",...ST.map(s=>s.navn),"Talt av","Tidspunkt","Fil"];
+  const lineRows=rows.map(r=>[r.sektor,r.nr,r.na,...ST.map(s=>r.q[s.kode]),r.talt_av,r.tid,r.fil]);
+  const missHead=["Sektor","Artikkelnr","Navn"];const missRows=missing.map(m=>[m.sektor,m.nr,m.na]);
+  const base=`Telling_${String(CFG.lager||"").split(" ")[0]}_reservedeler_SAMLET_${nowStr().slice(0,10)}`;
+  try{
+    const X=await loadXLSX();const wb=X.utils.book_new();
+    const add=(name,head,data,wch)=>{const ws=X.utils.aoa_to_sheet([head,...data]);ws["!cols"]=head.map((h,i)=>({wch:wch[i]||12}));ws["!autofilter"]={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:head.length-1}})};ws["!freeze"]={xSplit:0,ySplit:1};X.utils.book_append_sheet(wb,ws,name)};
+    add("Sum per artikkel",sumHead,sumRows,[12,42]);add("Alle linjer",lineHead,lineRows,[8,10,12,42]);add("Fra liste ikke registrert",missHead,missRows,[10,12,42]);
+    X.writeFile(wb,base+".xlsx");toast("Excel lastet ned");
+  }catch(e){
+    downloadText(base+".csv","﻿"+[sumHead,...sumRows].map(r=>r.map(v=>typeof v==="number"?v:q(v)).join(";")).join("\r\n"));
+    toast("Uten nett: lagret som CSV i stedet");
+  }
+}
+
+/* ================= OPPSETT ================= */
+function oppsettHTML(){
+  const nArt=Object.keys(CFG.artikler||{}).length;const nSec=CFG.sektorer.reduce((a,s)=>a+s.artikler.length,0);
+  const noName=CFG.sektorer.flatMap(s=>s.artikler).filter(nr=>!inRegister(nr)).length;
+  return bar("Oppsett",{back:true,meta:"PC"})+`<div class="content">${banners()}
+   <div class="grid2">
+    <div class="card"><h3>Aktiv konfigurasjon</h3>
+      <div class="kv"><span>Dataversjon</span><b>${esc(CFG.versjon||"–")}</b></div>
+      <div class="kv"><span>Kilde</span><b>${LOCALCFG?"Importert på denne enheten":"Innebygd i app-filen"}</b></div>
+      <div class="kv"><span>Statuser</span><b>${STATS().map(s=>esc(s.navn)+" ("+esc(s.merke)+")").join(" · ")}</b></div>
+      <div class="kv"><span>Artikkelregister</span><b>${fmt(nArt)} artikler</b></div>
+      <div class="kv"><span>Sektorer</span><b>${CFG.sektorer.length} · ${fmt(nSec)} linjer</b></div>
+      ${noName?`<div class="kv"><span>Artikler på sektorlister uten navn i registeret</span><b style="color:var(--warn)">${noName}</b></div>`:""}
+      <table style="margin-top:8px">${CFG.sektorer.map(s=>`<tr><td>${esc(s.kode)}</td><td class="n">${s.artikler.length} artikler</td></tr>`).join("")}</table>
+    </div>
+    <div class="card"><h3>1. Artikkelregister</h3>
+      <p class="hint" style="margin-top:0">Excel eller CSV med kolonnene <b>artikkelnr</b> og <b>navn</b> (også godtatt: artnr, beskrivelse, benevnelse). Erstatter registeret.</p>
+      <label class="drop" style="margin-top:8px"><b>Velg fil</b><input type="file" id="imp-reg" accept=".csv,.txt,.xlsx,.xls" style="display:none"></label>
+      <h3 style="margin-top:16px">2. Sektorer og forventede artikler</h3>
+      <p class="hint" style="margin-top:0">Én fil med kolonnene <b>sektor</b> og <b>artikkelnr</b> (valgfritt: <b>navn</b>, <b>rekkefølge</b>) – f.eks. fra forrige telling. Brukes som kontroll («Fra liste – mangler»), ikke som tvungen liste. Erstatter alle sektorer.</p>
+      <label class="drop" style="margin-top:8px"><b>Velg fil</b><input type="file" id="imp-sec" accept=".csv,.txt,.xlsx,.xls" style="display:none"></label>
+      <p class="hint">Excel-filer krever nett (leser lastes fra cdnjs). Artikkelnr med 5 sifre får 0 foran (Excel fjerner ledende null).</p>
+    </div>
+   </div>
+   <div class="card"><h3>Server (Google Sheet)</h3>
+     <p class="hint" style="margin-top:0">Nettapp-adressen fra Apps Script (slutter med <b>/exec</b>). Da sendes hver registrering til arket, og sektorlister og artikkelregister hentes fra fanene <b>Sektorer</b> og <b>Artikler</b>.</p>
+     <label class="lbl" for="srvurl" style="margin-top:10px">Nettapp-adresse</label><input id="srvurl" class="field" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(serverUrl())}" autocomplete="off">
+     <label class="lbl" for="srvpin" style="margin-top:10px">Kode (PIN) på denne enheten</label><input id="srvpin" class="field" placeholder="Samme som PIN i skriptet" value="${esc(S.pin)}" autocomplete="off">
+     <div class="stack" style="margin-top:10px"><button class="btn navy block" data-act="srv-save">Lagre og test forbindelse</button>
+       ${serverUrl()?`<button class="btn ghost block" data-act="srv-pull">Hent lister fra Google Sheet nå</button>`:""}</div>
+     ${serverUrl()?`<div class="kv" style="margin-top:8px"><span>Status</span>${syncBadge()}</div><div class="kv"><span>Telefon-ID</span><b>${esc(S.device)}</b></div><div class="kv"><span>Sist sendt</span><b>${esc(S.lastSync||"–")}</b></div>`:""}
+   </div>
+   <div class="card"><h3>3. Lag app-fil til telefonene</h3>
+     <p class="hint" style="margin-top:0">Lager en ny HTML-fil med konfigurasjonen over bygget inn. Den filen legges ut på https-adressen som telefonene bruker.</p>
+     ${serverUrl()?`<label style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14px"><input type="checkbox" id="bakelean" checked style="width:20px;height:20px;margin-top:1px"> <span><b>Ikke bygg inn lister og artikkelregister</b> – appen henter dem fra Google Sheet når koden er skrevet inn. Da ligger ingen Doka-data i filen på GitHub.</span></label>`:""}
+     <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="bake">Last ned app-fil med denne konfigurasjonen</button>
+     ${LOCALCFG?`<button class="btn ghost block" data-act="reset-cfg">Gå tilbake til innebygd konfigurasjon</button>`:""}</div>
+   </div>
+   <div class="card"><h3>Tellinger på denne enheten</h3>
+     <p class="hint" style="margin-top:0">${Object.values(S.counts).reduce((a,o)=>a+Object.keys(o).length,0)} registrerte linjer.</p>
+     <button class="btn ghost block" style="margin-top:8px;color:var(--bad)" data-act="wipe">Slett alle tellinger…</button></div>
+  </div>`;
+}
+async function readTableFile(file){
+  if(/\.xlsx?$/i.test(file.name)){
+    const X=await loadXLSX();const wb=X.read(await file.arrayBuffer(),{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];return X.utils.sheet_to_json(ws,{header:1,raw:false,defval:""}).map(r=>r.map(v=>String(v)));
+  }
+  return parseDelimited(await file.text());
+}
+function colIdx(H,keys){const h=H.map(x=>String(x).trim().toLowerCase());return h.findIndex(x=>keys.some(k=>x===k||x.startsWith(k)))}
+const K_NR=["artikkelnr","artikkel nr","artikkelnummer","artnr","art.nr","art nr","article","item","materialnr","varenr","artikel"];
+const K_NA=["navn","beskrivelse","benevnelse","name","description","tekst","bezeichnung"];
+const K_SEC=["sektor","sector","lokasjon","plass","location"];
+const K_ORD=["rekkefølge","rekkefolge","sortering","order","sort","nr i rekke"];
+function saveCfg(c){c.versjon=nowStr()+" (importert)";c.testdata=false;CFG=c;LOCALCFG=true;lsSet(CFGKEY,JSON.stringify(c));fixSt()}
+async function importRegister(file){
+  const rows=await readTableFile(file);if(rows.length<2) throw new Error("Tom fil");
+  const iN=colIdx(rows[0],K_NR),iA=colIdx(rows[0],K_NA);
+  if(iN<0||iA<0) throw new Error("Fant ikke kolonnene artikkelnr og navn i første rad");
+  const reg={};let n=0;rows.slice(1).forEach(r=>{const nr=normNr(r[iN]);const na=String(r[iA]||"").trim();if(nr){reg[nr]=na||reg[nr]||"";n++}});
+  const c=JSON.parse(JSON.stringify(CFG));c.artikler=reg;saveCfg(c);return `${n} artikler lest inn i registeret`;
+}
+async function importSectors(file){
+  const rows=await readTableFile(file);if(rows.length<2) throw new Error("Tom fil");
+  const H=rows[0];const iS=colIdx(H,K_SEC),iN=colIdx(H,K_NR),iA=colIdx(H,K_NA),iO=colIdx(H,K_ORD);
+  if(iS<0||iN<0) throw new Error("Fant ikke kolonnene sektor og artikkelnr i første rad");
+  const map=new Map();const c=JSON.parse(JSON.stringify(CFG));c.artikler=c.artikler||{};let n=0,dup=0;
+  rows.slice(1).forEach((r,i)=>{const s=String(r[iS]||"").trim();const nr=normNr(r[iN]);if(!s||!nr) return;
+    if(!map.has(s)) map.set(s,[]);const L=map.get(s);if(L.some(x=>x.nr===nr)){dup++;return}
+    L.push({nr,o:iO>=0&&r[iO]!==""?parseFloat(String(r[iO]).replace(",",".")):i});
+    if(iA>=0&&r[iA]&&!c.artikler[nr]) c.artikler[nr]=String(r[iA]).trim();n++});
+  c.sektorer=[...map.entries()].map(([kode,L])=>({kode,artikler:L.sort((a,b)=>a.o-b.o).map(x=>x.nr)}));
+  saveCfg(c);return `${c.sektorer.length} sektorer, ${n} linjer${dup?` (${dup} duplikater i samme sektor fjernet)`:""}`;
+}
+function bakeApp(){
+  const lean=!!($("#bakelean")&&$("#bakelean").checked);
+  const c=Object.assign({},CFG,{versjon:nowStr()+(lean?" (lister fra Google Sheet)":""),server:{url:serverUrl()}});delete c.kilde;
+  if(lean){c.sektorer=[];c.artikler={};c.testdata=false}
+  const json=JSON.stringify(c,null,1).replace(/</g,"\\u003c");
+  const html=PRISTINE.replace(/(<script id="appdata"[^>]*>)[\s\S]*?(<\/script>)/,(m,a,b)=>a+"\n"+json+"\n"+b);
+  downloadText("index.html",html,"text/html;charset=utf-8");
+}
+
+/* ================= ARK (bottom sheets) ================= */
+function openSheet(s){sheet=s;renderSheet();$("#sheet").classList.add("open");$("#scrim").classList.add("open")}
+function closeSheet(){sheet={type:null};$("#sheet").classList.remove("open");$("#scrim").classList.remove("open")}
+function renderSheet(){
+  const el=$("#sheet");
+  el.innerHTML=sheet.type==="count"?countSheet():sheet.type==="add"?addSheet():sheet.type==="finish"?finishSheet():sheet.type==="unknown"?unknownSheet():sheet.type==="confirm"?confirmSheet():"";
+  bindSheet();
+}
+const head=(nr,na)=>`<div class="grab"></div><div class="sh-head"><div style="flex:1"><div class="nr mono">${esc(nr)} · ${esc(view.sector)}</div><div class="na">${esc(na)}</div></div><button class="back xbtn" data-act="close" aria-label="Lukk">✕</button></div>`;
+function nrStep(){
+  const t=sheet.typed||"";const ex=t?findKnown(view.sector,t):null;const cands=candidates(view.sector,t).filter(x=>x!==ex);
+  const unk=t.length>=5&&!ex&&!cands.length;
+  return `<div class="grab"></div><div class="sh-head"><div style="flex:1"><div class="nr">${esc(view.sector)}</div><div class="na">Artikkelnummer</div></div><button class="back xbtn" data-act="close" aria-label="Lukk">✕</button></div>
+    <div class="nrd"><div class="res mono">${t?esc(t):'<span style="opacity:.35">– – – – – –</span>'}</div>
+      <div class="nmatch ${unk?"bad":""}">${ex?"✓ "+esc(nameOf(ex)):(unk?"Ukjent nummer":"&nbsp;")}</div></div>
+    <div class="cands">${cands.map(nr=>`<button class="cand" data-pick="${esc(nr)}"><span class="mono">${esc(nr)}</span><span class="na">${esc(nameOf(nr))}</span>${cnt(view.sector,nr)?'<span class="pill ok">reg.</span>':""}</button>`).join("")}</div>
+    <div class="keys">
+    ${["7","8","9"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op sm" data-k="del">⌫</button>
+    ${["4","5","6"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op sm" data-k="scan">Skann</button>
+    ${["1","2","3"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op sm" data-k="name">Søk navn</button>
+    <button class="key op sm" data-k="clr">C</button><button class="key" data-k="0">0</button><button class="key" data-k="00">00</button><button class="key ok" data-k="ok">OK ›</button></div>`;
+}
+function countSheet(){
+  if(sheet.step==="nr") return nrStep();
+  const ST=STATS();const nr=sheet.nr;const sl=sers(view.sector,nr);
+  const cols=`grid-template-columns:repeat(${ST.length},1fr)`;
+  if(sl.length){
+    return head(nr,nameOf(nr))+`<div class="nb" style="${cols};margin-top:12px">${ST.map((s,i)=>`<div class="nbx s${i}"><span class="lab">${esc(s.navn.toUpperCase())} <i>${esc(s.merke||"")}</i></span><span class="ex">serienr</span><b>${sl.filter(x=>x.st===s.kode).length}</b></div>`).join("")}</div>
+    <div class="serials">${sl.map(x=>`<span class="mono c${sidx(x.st)}">${esc(x.sn)} · ${esc((STATS()[sidx(x.st)]||{}).merke||x.st)}</span>`).join("")}</div>
+    <p class="hint">Antall = antall skannede serienumre. Skann etiketten (strekkode + QR) på hver enhet.</p>
+    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="scan">Skann flere</button><button class="btn ghost block" data-act="close">Ferdig</button></div>`;
+  }
+  const old=cnt(view.sector,nr);
+  const note=old&&!sheet.edit?`<div class="addnote">Allerede registrert her: <b>${ST.map(s=>esc(s.navn)+" "+fmt(old.q[s.kode]||0)).join(" · ")}</b>. Det du skriver nå <b>legges til</b>. <button class="link" data-act="to-edit" style="padding:0">Endre i stedet</button></div>`
+    :(old&&sheet.edit?`<div class="addnote" style="background:#E5ECF8">Du endrer registreringen – tallene <b>erstatter</b> det som var.</div>`:"");
+  const vk=sheet.mode==="vekt";
+  const keys=`<div class="keys">
+    ${["7","8","9"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op sm" data-k="del">⌫</button>
+    ${["4","5","6"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op ${vk?"sm":""}" data-k="×">${vk?"Neste ↓":"×"}</button>
+    ${["1","2","3"].map(k=>`<button class="key" data-k="${k}">${k}</button>`).join("")}<button class="key op" data-k="+">${vk?",":"+"}</button>
+    <button class="key op sm" data-k="clr">C</button><button class="key" data-k="0">0</button><button class="key" data-k="00">00</button><button class="key ok" data-k="ok">${sheet.fromScan?"OK ⟲":"OK ›"}</button></div>`;
+  let mid;
+  if(vk){
+    const w=sheet.w;const r=weightResult();
+    const f=(i,lbl,unit)=>`<button class="wf ${w.active===i?"on":""}" data-wf="${i}"><span>${lbl}</span><b>${w.v[i]?esc(w.v[i].replace(".",",")):"–"} <small style="font-size:14px;color:var(--muted)">${unit}</small></b></button>`;
+    mid=`<div class="stsel">Legges inn som: ${ST.map((s,i)=>`<button class="s${i} ${sheet.st===s.kode?"on":""}" data-st="${esc(s.kode)}">${esc(s.navn)}</button>`).join("")}</div>
+      <div class="wfields">${f(0,"Antall i prøven","stk")}${f(1,"Vekt av prøven","g")}${f(2,"Total vekt (netto)","g")}</div>
+      <div class="wres"><span>Beregnet antall</span><b>${r===null?"–":fmt(r)}</b></div>
+      <p class="hint" style="margin-top:6px">Trekk fra vekt på boks/kasse. Andre statuser beholder det som er skrevet inn.</p>`;
+  }else{
+    const box=(s,i)=>{const e=sheet.vals[s.kode]||"";const v=evalExpr(e);
+      return `<button class="nbx s${i} ${sheet.st===s.kode?"on":""}" data-st="${esc(s.kode)}"><span class="lab">${esc(s.navn.toUpperCase())} <i>${esc(s.merke||"")}</i></span>
+        <span class="ex mono">${/[×+]/.test(e)?esc(e.replace(/\+/g," + ")):(sheet.wnote[s.kode]?"vekt":"&nbsp;")}</span><b>${e===""?"–":(v===null?"…":fmt(v))}</b></button>`};
+    const tv=ST.reduce((a,s)=>a+(evalExpr(sheet.vals[s.kode])||0),0);
+    mid=`<div class="nb" style="${cols}">${ST.map(box).join("")}</div>
+      <div class="nbsum"><span>Trykk på feltet for å bytte</span><span>Totalt <b style="color:var(--ink)">${fmt(tv)}</b> stk</span></div>`;
+  }
+  return head(nr,nameOf(nr))+note+`<div class="tabs"><button class="${vk?"":"on"}" data-mode="antall">Antall</button><button class="${vk?"on":""}" data-mode="vekt">⚖ Vekt</button></div>
+    ${mid}${keys}${sheet.fromScan?`<p class="hint" style="text-align:center">OK lagrer og åpner kameraet igjen</p>`:""}
+    ${!sheet.edit&&!sheet.fromScan?`<div style="text-align:center"><button class="backnr" data-act="back-nr">‹ Annet artikkelnummer</button></div>`:""}`;
+}
+function weightResult(){const v=sheet.w.v.map(x=>parseFloat(x));if(!(v[0]>0&&v[1]>0&&v[2]>=0)||!sheet.w.v[2]) return null;return Math.round(v[2]/(v[1]/v[0]))}
+function addSheet(){
+  const qq=(sheet.q||"").toLowerCase().trim();
+  const hits=qq?Object.entries(CFG.artikler||{}).filter(([nr,na])=>nr.includes(qq)||String(na).toLowerCase().includes(qq)).slice(0,8):[];
+  return `<div class="grab"></div><div class="sh-head"><div style="flex:1"><div class="na">Søk på navn</div><div class="nr">Hvis etiketten mangler eller ikke kan leses</div></div><button class="back xbtn" data-act="close">✕</button></div>
+    <div style="margin-top:12px"><input id="aq" class="field" placeholder="F.eks. stagmutter 20" value="${esc(sheet.q||"")}" autocomplete="off"></div>
+    <div class="list" style="margin-top:10px">${hits.map(([nr,na])=>`<button class="item" data-addnr="${esc(nr)}"><span class="t"><span class="nr mono">${esc(nr)}</span><span class="na">${esc(na)}</span></span><span class="pill warn">Velg</span></button>`).join("")}</div>
+    ${qq&&!hits.length?`<p class="hint">Ingen treff i artikkelregisteret.</p>`:""}`;
+}
+function unknownSheet(){
+  return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div style="flex:1"><div class="nr mono" style="font-size:20px;color:var(--ink)">${esc(sheet.nr)}</div><div class="na" style="color:var(--bad)">Finnes ikke i artikkelregisteret</div></div></div>
+    <p>Sjekk nummeret på etiketten. Stemmer det, skriv hva slags del det er og registrer den likevel.</p>
+    <input id="una" class="field" placeholder="Beskrivelse (f.eks. bolt M20 med mutter)">
+    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="unk-add">Registrer likevel</button>
+    <button class="btn ghost block" data-act="unk-retype">Skriv nummeret på nytt</button>
+    <button class="btn ghost block" data-act="scan">Skann på nytt</button></div></div>`;
+}
+function finishSheet(){
+  const code=view.sector;const st=stats(code);const miss=st.exp-st.expDone;
+  if(!miss) return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">Fullføre ${esc(code)}?</div></div>
+    <p>${st.reg} artikler registrert i sektoren.</p><div class="stack"><button class="btn primary block" data-act="finish-ok">Ja, sektor ferdig</button><button class="btn ghost block" data-act="close">Avbryt</button></div></div>`;
+  return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">${miss} artikler fra listen er ikke registrert</div></div>
+    <p>De lå i ${esc(code)} ved forrige telling. Sjekk at de virkelig ikke finnes i sektoren før du fullfører.</p>
+    <div class="stack"><button class="btn navy block" data-act="show-missing">Vis dem (${miss})</button>
+    <button class="btn ghost block" data-act="finish-ok">Finnes ikke – fullfør sektoren</button>
+    <button class="btn ghost block" data-act="close" style="border:0">Avbryt</button></div></div>`;
+}
+function confirmSheet(){
+  return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">${esc(sheet.title)}</div></div><p>${sheet.text}</p>
+    <div class="stack"><button class="btn ${sheet.danger?"danger":"primary"} block" data-act="confirm-ok">${esc(sheet.ok)}</button><button class="btn ghost block" data-act="close">Avbryt</button></div></div>`;
+}
+
+/* ================= REGISTRERING ================= */
+function setCount(nr,qv,ev){const c=view.sector;S.seq=(S.seq||0)+1;(S.counts[c]=S.counts[c]||{})[nr]={q:qv,e:ev,by:S.name||"",ts:nowStr(),n:S.seq};
+  S.dirty[c+"|"+nr]=S.seq;if(S.done[c]){delete S.done[c];markSectorDirty(c)}save();scheduleSync()}
+function markSectorDirty(c){S.seq=(S.seq||0)+1;S.dirty[c+"|#STATUS"]=S.seq}
+
+function openEntry(typed){openSheet({type:"count",step:"nr",typed:typed||""})}
+/* opts.edit = endre (erstatte) · ellers legges nye tall til det som er registrert */
+function openCount(nr,opts){
+  opts=opts||{};const ST=STATS();const c=cnt(view.sector,nr);const vals={};
+  ST.forEach(s=>{const e=c&&c.e[s.kode];const n=c&&c.q[s.kode];vals[s.kode]=(c&&opts.edit)?(/^[0-9×+]+$/.test(e||"")?e:(n?String(n):"")):""});
+  let st=S.st;if(c&&opts.edit){const nz=ST.filter(s=>c.q[s.kode]);if(nz.length===1) st=nz[0].kode}
+  openSheet({type:"count",step:"qty",nr,edit:!!opts.edit,mode:"antall",vals,wnote:{},st,fromScan:!!opts.fromScan,w:{v:["20","",""],active:1}});
+}
+function pickNr(nr){openCount(nr,{})}
+function setSt(st){sheet.st=st;S.st=st;save();renderSheet()}
+function commit(){
+  const ST=STATS();
+  if(sheet.mode==="vekt"){const r=weightResult();if(r===null){toast("Fyll inn alle tre feltene");return}
+    sheet.vals[sheet.st]=String(r);sheet.wnote[sheet.st]=`vekt ${sheet.w.v[2]}g ÷ (${sheet.w.v[1]}g/${sheet.w.v[0]}stk)`}
+  if(!ST.some(s=>sheet.vals[s.kode])){toast("Skriv inn antall");return}
+  const qv={},ev={};
+  for(const s of ST){const e=sheet.vals[s.kode]||"";const v=e?evalExpr(e):0;if(v===null){toast("Regnestykket er ikke ferdig");return}qv[s.kode]=v;ev[s.kode]=sheet.wnote[s.kode]||e}
+  const nr=sheet.nr;const old=cnt(view.sector,nr);
+  if(old&&!sheet.edit){ST.forEach(s=>{const k=s.kode;const oe=old.e[k]||(old.q[k]?String(old.q[k]):"");
+    qv[k]=(old.q[k]||0)+qv[k];ev[k]=[oe,ev[k]].filter(Boolean).join(" + ")})}
+  setCount(nr,qv,ev);
+  const msg=`${nameOf(nr)}: ${ST.filter(s=>qv[s.kode]).map(s=>s.navn+" "+fmt(qv[s.kode])).join(" · ")||"0"}`;
+  refreshList();
+  if(sheet.fromScan){closeSheet();toast(msg);openScanner();return}
+  if(sheet.edit){closeSheet();toast(msg);return}
+  openEntry();toast("✓ "+msg);
+}
+function key(k){
+  if(sheet.step==="nr"){
+    let t=sheet.typed||"";
+    if(k==="scan"){closeSheet();openScanner();return}
+    if(k==="name"){openSheet({type:"add",q:""});setTimeout(()=>{const x=$("#aq");if(x) x.focus()},230);return}
+    if(k==="ok"){const ex=findKnown(view.sector,t);const c=candidates(view.sector,t).filter(x=>x!==ex);
+      if(ex) pickNr(ex); else if(c.length===1) pickNr(c[0]); else if(t.length>=4&&!c.length) openSheet({type:"unknown",nr:normNr(t)}); else toast(t?"Velg artikkel i listen":"Skriv artikkelnummeret");return}
+    if(k==="del") t=t.slice(0,-1); else if(k==="clr") t=""; else if(/^\d+$/.test(k)) t=(t+k).slice(0,12);
+    sheet.typed=t;renderSheet();return;
+  }
+  if(sheet.mode==="vekt"){
+    const w=sheet.w;let v=w.v[w.active]||"";
+    if(k==="ok"){commit();return}
+    if(k==="del") v=v.slice(0,-1); else if(k==="clr") v="";
+    else if(k==="×"){ if(w.active<2) w.active++; renderSheet(); return}
+    else if(k==="+"){ if(v.includes(".")) return; v=(v||"0")+"."; }
+    else v=(v+k).replace(/^0+(?=\d)/,"").slice(0,8);
+    w.v[w.active]=v;renderSheet();return;
+  }
+  if(k==="ok"){commit();return}
+  let e=sheet.vals[sheet.st]||"";delete sheet.wnote[sheet.st];
+  if(k==="del") e=e.slice(0,-1);
+  else if(k==="clr") e="";
+  else if(k==="×"||k==="+"){ if(!e||/[×+]$/.test(e)) return; e+=k; }
+  else { e+=k; e=e.replace(/(^|[×+])0+(?=\d)/g,"$1"); if(e.length>18) return; }
+  sheet.vals[sheet.st]=e;renderSheet();
+}
+
+function refreshList(){if(view.screen!=="sector") return;const y=window.scrollY;render();window.scrollTo(0,y)}
+function updateListOnly(){const l=$("#list");if(l){l.innerHTML=listHTML();bindList()}}
+function scrollToItem(nr){const b=document.querySelector(`.item[data-nr="${CSS.escape(nr)}"]`);if(b) b.scrollIntoView({block:"center",behavior:"smooth"})}
+
+/* ================= SKANNER (Chrome Android: BarcodeDetector, krever https) ================= */
+const scan={on:false,stream:null,det:null,timer:null,prev:"",paused:false,track:null,torch:false};
+function scannerHTML(){
+  const ST=STATS();
+  return `<video id="scanvid" playsinline muted></video>
+  <div class="sc-top"><button class="back" data-sc="close" aria-label="Lukk">✕</button><span class="sp">Skann etikett · ${esc(view.sector||"")}</span>
+    <button class="back" id="torchbtn" data-sc="torch" aria-label="Lys" style="display:none">💡</button></div>
+  <div class="sc-frame"><i></i></div>
+  <div class="sc-bottom">
+    <div class="sc-stat" id="scstat">Sikt mot strekkoden</div>
+    <div class="sc-sub" id="scsub">Strekkode = artikkel. Etikett med QR = registrerer serienummer.</div>
+    <div class="stsel">Serienr som: ${ST.map((s,i)=>`<button class="s${i} ${S.st===s.kode?"on":""}" data-scst="${esc(s.kode)}">${esc(s.navn)}</button>`).join("")}</div>
+    <div class="sc-demo" id="scdemo" style="display:none"></div>
+    <button class="btn ghost block" data-sc="type">Skriv nummer i stedet</button>
+  </div>`;
+}
+function setStat(t,warn,sub){const a=$("#scstat");if(!a) return;a.textContent=t;a.classList.toggle("warn",!!warn);if(sub!==undefined) $("#scsub").textContent=sub}
+function showDemo(){
+  const exp=expected(view.sector);const a=exp.find(nr=>!cnt(view.sector,nr))||exp[0]||Object.keys(CFG.artikler||{})[0];
+  const d=$("#scdemo");if(!d) return;d.style.display="grid";
+  d.innerHTML=`<div class="hint" style="margin:0">Test uten kamera:</div>
+    ${a?`<button data-demo="${esc(a)}">Simuler strekkode <b class="mono">${esc(a)}</b></button>`:""}
+    <button data-demo="12345678">Simuler ukjent strekkode <b class="mono">12345678</b></button>
+    <button data-demo="583034000|DFF-00${String(11+Math.floor(Math.random()*80))}">Simuler serienr-etikett <b class="mono">583034000 + QR</b></button>`;
+  d.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.demo.split("|");onScan(x,y||null);if(y) showDemo()});
+}
+async function openScanner(){
+  if(!view.sector){toast("Velg sektor først");return}
+  const el=$("#scanner");el.innerHTML=scannerHTML();el.classList.add("open");el.classList.remove("hit");
+  scan.on=true;scan.paused=false;scan.prev="";bindScanner();
+  if(!("BarcodeDetector" in window)||!navigator.mediaDevices||!window.isSecureContext||location.protocol==="content:"||location.protocol==="file:"){
+    setStat("Kamera ikke tilgjengelig",true,(!window.isSecureContext||location.protocol!=="https:")?"Appen er åpnet som fil. Kameraet virker bare når appen åpnes fra en https-adresse – skriv nummeret i stedet.":"Denne nettleseren har ikke strekkodeleser – bruk Chrome på Android.");showDemo();return}
+  try{
+    const fm=await BarcodeDetector.getSupportedFormats();
+    scan.det=new BarcodeDetector({formats:["code_39","code_128","qr_code","ean_13"].filter(f=>fm.includes(f))});
+    scan.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+    if(!scan.on){stopStream();return}
+    const v=$("#scanvid");v.srcObject=scan.stream;await v.play();
+    scan.track=scan.stream.getVideoTracks()[0];
+    try{if(scan.track.getCapabilities&&scan.track.getCapabilities().torch) $("#torchbtn").style.display="grid"}catch(e){}
+    loop();
+  }catch(e){
+    if(location.protocol!=="https:") setStat("Kamera virker ikke når appen er åpnet som fil",true,"Åpnet fra "+location.protocol+"//. Kameraet krever at appen åpnes fra en https-adresse. Skriv nummeret i stedet.");
+    else setStat("Får ikke tilgang til kameraet",true,"Tillat kamera for siden i Chrome (lås-ikonet i adresselinjen), eller skriv nummeret.");
+    showDemo()}
+}
+function stopStream(){if(scan.stream){scan.stream.getTracks().forEach(t=>t.stop());scan.stream=null}}
+function closeScanner(){scan.on=false;clearTimeout(scan.timer);stopStream();const el=$("#scanner");if(el){el.classList.remove("open");el.innerHTML=""}}
+function loop(){
+  if(!scan.on||!scan.det) return;
+  scan.det.detect($("#scanvid")).then(codes=>{if(!scan.paused) handleCodes(codes)}).catch(()=>{}).finally(()=>{if(scan.on) scan.timer=setTimeout(loop,120)});
+}
+function handleCodes(codes){
+  let art=null,ser=null;
+  codes.forEach(c=>{const t=String(c.rawValue||"").trim();if(c.format==="qr_code"){if(t) ser=t} else if(/^\d{5,10}$/.test(t)) art=t});
+  if(!art&&!ser){scan.prev="";return}
+  const k=(art||"")+"|"+(ser||"");
+  if(k!==scan.prev){scan.prev=k;return}  // samme kode i to bilder på rad = sikker lesning
+  scan.prev="";onScan(art,ser);
+}
+function flash(){const el=$("#scanner");el.classList.add("hit");setTimeout(()=>el.classList.remove("hit"),350);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
+function onScan(rawArt,ser){
+  if(ser&&!rawArt){setStat(`Serienr ${ser} – mangler strekkode`,true,"Hold hele etiketten i bildet (strekkode + QR).");return}
+  flash();
+  const art=findKnown(view.sector,rawArt);
+  if(!art){closeScanner();openSheet({type:"unknown",nr:normNr(rawArt),ser,fromScan:true});return}
+  if(ser){registerSerial(art,ser);return}
+  closeScanner();openCount(art,{fromScan:true});
+}
+function registerSerial(art,ser){
+  const code=view.sector;S.serials[code]=S.serials[code]||{};const arr=S.serials[code][art]=S.serials[code][art]||[];
+  const dup=arr.find(x=>x.sn===ser);
+  if(dup){setStat(`${ser} er allerede skannet (${stName(dup.st)})`,true,`${nameOf(art)} – ${arr.length} stk registrert`);try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){};return}
+  arr.push({sn:ser,st:S.st});
+  const qv={},ev={};STATS().forEach(s=>{qv[s.kode]=arr.filter(x=>x.st===s.kode).length;ev[s.kode]=qv[s.kode]?"serienr":""});
+  setCount(art,qv,ev);refreshList();
+  setStat(`✓ ${ser} registrert som ${stName(S.st)}`,false,`${nameOf(art)} – ${STATS().map(s=>s.navn+" "+qv[s.kode]).join(" · ")}. Skann neste.`);
+  scan.paused=true;setTimeout(()=>{scan.paused=false},900);
+}
+function bindScanner(){
+  const el=$("#scanner");
+  el.querySelectorAll("[data-sc]").forEach(b=>b.onclick=async()=>{const a=b.dataset.sc;
+    if(a==="close") closeScanner();
+    else if(a==="type"){closeScanner();const qi=$("#q");if(qi) qi.focus()}
+    else if(a==="torch"&&scan.track){scan.torch=!scan.torch;try{await scan.track.applyConstraints({advanced:[{torch:scan.torch}]})}catch(e){}}});
+  el.querySelectorAll("[data-scst]").forEach(b=>b.onclick=()=>{S.st=b.dataset.scst;save();el.querySelectorAll("[data-scst]").forEach(x=>x.classList.toggle("on",x.dataset.scst===S.st))});
+}
+
+/* ================= SERVER (Google Apps Script) ================= */
+let syncState={status:"idle"},syncTimer=null,syncing=false;
+function serverUrl(){return String((CFG.server&&CFG.server.url)||(EMBEDDED.server&&EMBEDDED.server.url)||"").trim()}
+function pendingN(){return Object.keys(S.dirty).length}
+function syncBadge(){
+  if(!serverUrl()) return "";
+  const n=pendingN();const st=syncState.status;
+  const [cls,txt]=st==="pin"?["pin","⚠ Feil kode"]:st==="offline"?["offline",`⚠ Uten nett · ${n} venter`]:st==="err"?["err",`⚠ Feil · ${n} venter`]
+    :(n||st==="busy")?["busy",n?`⟳ Sender ${n}…`:"⟳ Sender…"]:["ok","✓ Alt sendt"];
+  return `<span class="sync ${cls} js-sync" data-act="sync-now">${txt}</span>`;
+}
+function updateSyncBadge(){document.querySelectorAll(".js-sync").forEach(el=>{el.outerHTML=syncBadge()});document.querySelectorAll(".js-sync").forEach(b=>b.onclick=()=>act("sync-now"))}
+function scheduleSync(ms){if(!serverUrl()) return;clearTimeout(syncTimer);syncTimer=setTimeout(sync,ms==null?800:ms)}
+function buildRecord(key){
+  const i=key.lastIndexOf("|");const code=key.slice(0,i),nr=key.slice(i+1);const v=S.dirty[key];
+  if(nr==="#STATUS") return {type:"sector",key,v,sektor:code,done:!!S.done[code],by:S.name};
+  const c=cnt(code,nr);if(!c) return null;const sl=sers(code,nr);const sn={};
+  STATS().forEach(s=>{sn[s.kode]=sl.filter(x=>x.st===s.kode).map(x=>x.sn)});
+  return {key,v,sektor:code,nr,navn:nameOf(nr),q:c.q,e:c.e,sn,by:c.by,ts:c.ts,extra:expected(code).length>0&&!expected(code).includes(nr)};
+}
+async function sync(){
+  const url=serverUrl();if(!url||!S.pin){updateSyncBadge();return}
+  if(syncing) return;
+  const keys=Object.keys(S.dirty);
+  if(!keys.length){if(syncState.status!=="pin") syncState={status:"ok"};updateSyncBadge();return}
+  syncing=true;syncState={status:"busy"};updateSyncBadge();
+  const recs=[];keys.slice(0,150).forEach(k=>{const r=buildRecord(k);if(r) recs.push(r); else delete S.dirty[k]});
+  let again=false;
+  try{
+    const r=await fetch(url,{method:"POST",body:JSON.stringify({pin:S.pin,device:S.device,navn:S.name,statuser:STATS().map(s=>({kode:s.kode,navn:s.navn})),records:recs})});
+    const j=await r.json();
+    if(!j.ok){syncState={status:j.error==="pin"?"pin":"err"};if(j.error==="pin"&&view.screen==="start"&&!sheet.type) render()}
+    else{(j.acked||[]).forEach(([k,v])=>{if(S.dirty[k]===v) delete S.dirty[k]});S.lastSync=nowStr();save();
+      syncState={status:"ok"};again=pendingN()>0&&keys.length>150}
+  }catch(e){syncState={status:"offline"}}
+  syncing=false;updateSyncBadge();
+  if(again) scheduleSync(50); else if(pendingN()&&syncState.status!=="pin") scheduleSync(15000);
+}
+async function fetchRemoteCfg(force){
+  const url=serverUrl();if(!url||!S.pin) return false;
+  try{
+    const r=await fetch(url+(url.includes("?")?"&":"?")+"action=config&pin="+encodeURIComponent(S.pin));const j=await r.json();
+    if(!j.ok){if(j.error==="pin"){syncState={status:"pin"};if(!sheet.type&&(view.screen==="start"||view.screen==="oppsett")) render()}return false}
+    if(syncState.status==="pin") syncState={status:pendingN()?"busy":"ok"};
+    const hasArt=j.artikler&&Object.keys(j.artikler).length,hasSek=j.sektorer&&j.sektorer.length;
+    if(!hasArt&&!hasSek){if(!sheet.type&&view.screen==="start") render();return false}
+    const c=JSON.parse(JSON.stringify(CFG));
+    if(hasArt){c.artikler={};Object.entries(j.artikler).forEach(([k,v])=>{c.artikler[normNr(k)]=v})}
+    if(hasSek) c.sektorer=j.sektorer.map(x=>({kode:String(x.kode),artikler:(x.artikler||[]).map(normNr)}));
+    c.versjon="Google Sheet "+nowStr();c.testdata=false;c.kilde="server";c.server={url};
+    CFG=c;LOCALCFG=true;lsSet(CFGKEY,JSON.stringify(c));fixSt();
+    if(!sheet.type&&(view.screen==="start"||view.screen==="oppsett"||force)) render();
+    return true;
+  }catch(e){return false}
+}
+async function saveServer(){
+  const url=($("#srvurl").value||"").trim(),pin=($("#srvpin").value||"").trim();
+  if(url&&!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)){toast("Adressen skal starte med https://script.google.com/…");return}
+  const c=JSON.parse(JSON.stringify(CFG));c.server={url};CFG=c;LOCALCFG=true;lsSet(CFGKEY,JSON.stringify(c));
+  S.pin=pin;save();
+  if(!url){toast("Server fjernet – appen lagrer bare lokalt");render();return}
+  toast("Tester forbindelsen…");
+  try{const r=await fetch(url+(url.includes("?")?"&":"?")+"action=ping&pin="+encodeURIComponent(pin));const j=await r.json();
+    if(j.ok){syncState={status:"ok"};toast("✓ Forbindelse OK");await fetchRemoteCfg(true);scheduleSync(100)}
+    else{syncState={status:j.error==="pin"?"pin":"err"};toast(j.error==="pin"?"Feil kode (PIN)":"Feil fra server: "+j.error)}}
+  catch(e){syncState={status:"offline"};toast("Fikk ikke kontakt – sjekk adressen og at nettappen er satt til «Alle»")}
+  render();
+}
+window.addEventListener("online",()=>scheduleSync(200));
+document.addEventListener("visibilitychange",()=>{if(!document.hidden) scheduleSync(300); else save()});
+
+/* ================= ADMIN-PANEL ================= */
+const admin={data:null,loading:false,err:"",tab:"sum",q:"",timer:null,at:null};
+async function adminLoad(){
+  const url=serverUrl();if(!url||!S.adminPin) {render();return}
+  admin.loading=true;if(view.screen==="admin"&&!admin.data) render();
+  try{
+    const r=await fetch(url+(url.includes("?")?"&":"?")+"action=data&pin="+encodeURIComponent(S.adminPin));const j=await r.json();
+    if(!j.ok){admin.err=j.error==="pin"?"Feil admin-kode":"Feil fra server: "+j.error;if(j.error==="pin"){S.adminPin="";save()}}
+    else{admin.data=j;admin.err="";admin.at=new Date()}
+  }catch(e){admin.err="Ingen forbindelse med serveren"}
+  admin.loading=false;
+  if(view.screen==="admin"&&!sheet.type){const y=window.scrollY;const qf=document.activeElement&&document.activeElement.id==="aq2";render();window.scrollTo(0,y);if(qf){const f=$("#aq2");if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}}
+  if(view.screen==="admin"&&!admin.timer&&S.adminPin) admin.timer=setInterval(()=>{if(view.screen==="admin"&&!document.hidden) adminLoad()},30000);
+}
+function adminCompute(){
+  const d=admin.data;const ST=STATS();const H=d.reg.head;const ix=n=>H.indexOf(n);const num=x=>Number(String(x).replace(/\s/g,"").replace(",","."))||0;
+  const rows=d.reg.rows.map(r=>{const o={tel:String(r[ix("Telefon")]||""),by:String(r[ix("Talt av")]||""),sektor:String(r[ix("Sektor")]||""),nr:normNr(r[ix("Artikkelnr")]),
+    navn:String(r[ix("Navn")]||""),extra:String(r[ix("Ikke på liste")]||"")==="ja",ts:String(r[ix("Registrert (telefon)")]||""),mot:String(r[ix("Mottatt")]||""),q:{},e:{}};
+    ST.forEach(s=>{o.q[s.kode]=ix(s.navn)>=0?num(r[ix(s.navn)]):0;o.e[s.kode]=ix("Utregning "+s.navn)>=0?String(r[ix("Utregning "+s.navn)]||""):""});return o}).filter(o=>o.nr);
+  const nameOfA=nr=>(d.artikler&&d.artikler[nr])||(rows.find(r=>r.nr===nr)||{}).navn||nameOf(nr);
+  const expMap={};(d.sektorer||[]).forEach(x=>expMap[x.kode]=x.artikler||[]);
+  const codes=[...(d.sektorer||[]).map(x=>x.kode)];rows.forEach(r=>{if(!codes.includes(r.sektor)) codes.push(r.sektor)});
+  const SH=d.status.head;const six=n=>SH.indexOf(n);
+  const stRows=d.status.rows.map(r=>({sektor:String(r[six("Sektor")]),tel:String(r[six("Telefon")]),by:String(r[six("Talt av")]),status:String(r[six("Status")]),t:String(r[six("Sist oppdatert")])}));
+  const now=Date.now();
+  const sectors=codes.map(code=>{const rs=rows.filter(r=>r.sektor===code);const exp=expMap[code]||[];const reg=new Set(rs.map(r=>r.nr));
+    const sts=stRows.filter(x=>x.sektor===code);const phones=new Set(rs.map(r=>r.tel));
+    let status="ikke";if(rs.length||sts.length) status="pagar";
+    if(sts.length&&[...phones].every(t=>sts.some(x=>x.tel===t&&x.status==="Ferdig"))&&sts.some(x=>x.status==="Ferdig")) status="ferdig";
+    const last=rs.map(r=>r.mot).sort().pop()||"";
+    return {code,status,who:[...new Set(rs.map(r=>r.by).filter(Boolean))],reg:reg.size,exp:exp.length,expDone:exp.filter(nr=>reg.has(nr)).length,
+      missing:exp.filter(nr=>!reg.has(nr)),last,active:last&&now-new Date(last).getTime()<15*60000}});
+  const art={};
+  rows.forEach(r=>{const a=art[r.nr]=art[r.nr]||{nr:r.nr,navn:nameOfA(r.nr),q:{},per:{},flags:new Set()};
+    ST.forEach(s=>a.q[s.kode]=(a.q[s.kode]||0)+r.q[s.kode]);
+    const p=a.per[r.sektor]=a.per[r.sektor]||{q:{},tels:new Set(),who:new Set()};ST.forEach(s=>p.q[s.kode]=(p.q[s.kode]||0)+r.q[s.kode]);p.tels.add(r.tel);p.who.add(r.by);
+    if(p.tels.size>1) a.flags.add("dobbel");
+    if((expMap[r.sektor]||[]).length&&!(expMap[r.sektor]||[]).includes(r.nr)) a.flags.add("ikkeliste");
+    if(/ikke i register/.test(r.navn)||(d.artikler&&Object.keys(d.artikler).length&&!d.artikler[r.nr])) a.flags.add("ukjent");});
+  const dis=d.discos||{};const hasDis=!!d.harDiscos;
+  if(hasDis){Object.keys(dis).forEach(nr=>{if(!art[nr]&&((dis[nr].ny||0)+(dis[nr].brukt||0))>0) art[nr]={nr,navn:nameOfA(nr),q:Object.fromEntries(ST.map(s=>[s.kode,0])),per:{},flags:new Set(["ikketalt"])}})}
+  const list=Object.values(art).map(a=>{const tot=ST.reduce((x,s)=>x+(a.q[s.kode]||0),0);const sys=dis[a.nr]||null;
+    const sysTot=sys?(sys.ny||0)+(sys.brukt||0):null;
+    return Object.assign(a,{tot,sys,sysTot,diff:hasDis?tot-(sysTot||0):null,diffNy:hasDis?(a.q.ny||0)-((sys&&sys.ny)||0):null,diffBr:hasDis?(a.q.brukt||0)-((sys&&sys.brukt)||0):null})}).sort((x,y)=>x.nr.localeCompare(y.nr));
+  const tels=new Set(rows.map(r=>r.tel));const activeTels=new Set(rows.filter(r=>r.mot&&now-new Date(r.mot).getTime()<15*60000).map(r=>r.tel));
+  return {ST,rows,sectors,list,hasDis,tels,activeTels};
+}
+function fmtTime(iso){if(!iso) return "–";const d=new Date(iso);if(isNaN(d)) return esc(iso);const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())}.${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`}
+const FLAGS={dobbel:["bad","Talt av flere i samme sektor"],ikkeliste:["warn","Ikke på sektorliste"],ukjent:["warn","Ukjent i register"],ikketalt:["bad","Ikke talt – har beholdning i Discos"]};
+function adminHTML(){
+  if(!serverUrl()) return bar("Admin",{back:true})+`<div class="content"><div class="banner bad">Ingen server satt opp. Se Oppsett.</div></div>`;
+  if(!S.adminPin) return bar("Telling 581 – Admin",{back:true,meta:"Łukasz"})+`<div class="content" style="max-width:420px">
+    ${admin.err?`<div class="banner bad">${esc(admin.err)}</div>`:""}
+    <label class="lbl" for="apin">Admin-kode</label><div style="display:flex;gap:8px"><input id="apin" class="field" type="password" inputmode="numeric" autocomplete="off"><button class="btn navy" data-act="admin-pin">Åpne</button></div>
+    <p class="hint">Admin-koden er en annen enn koden de som teller bruker.</p></div>`;
+  if(!admin.data) return bar("Telling 581 – Admin",{back:true})+`<div class="content"><div class="empty-state">${admin.err?esc(admin.err):"Henter data…"}</div></div>`;
+  const c=adminCompute();const ST=c.ST;
+  const ferdig=c.sectors.filter(x=>x.status==="ferdig").length;const flagged=c.list.filter(a=>a.flags.size);
+  const missingTot=c.sectors.reduce((x,y)=>x+y.missing.length,0);
+  const diffN=c.hasDis?c.list.filter(a=>a.diff).length:null;
+  const stLbl={ferdig:"Ferdig",pagar:"Pågår",ikke:"Ikke startet"};
+  const q=admin.q.trim().toLowerCase();const match=(nr,na)=>!q||nr.includes(q)||String(na).toLowerCase().includes(q);
+  let tbl="";
+  if(admin.tab==="sum"){const L=c.list.filter(a=>a.tot>0||a.flags.size).filter(a=>match(a.nr,a.navn));
+    tbl=`<table><tr><th>Art.nr</th><th>Navn</th>${ST.map((s,i)=>`<th class="n c${i}">${esc(s.navn)}</th>`).join("")}<th class="n">Totalt</th><th>Per sektor (${ST.map(s=>esc(s.merke||s.navn)).join("/")})</th>${c.hasDis?`<th class="n">Discos</th><th class="n">Diff</th>`:""}<th>Flagg</th></tr>
+      ${L.map(a=>`<tr${a.flags.has("dobbel")?' class="conflict"':""}><td class="mono">${esc(a.nr)}</td><td>${esc(a.navn)}</td>${ST.map((s,i)=>`<td class="n ${a.q[s.kode]?"c"+i:""}" style="${a.q[s.kode]?"":"color:#B8C0CE"}">${fmt(a.q[s.kode]||0)}</td>`).join("")}<td class="n">${fmt(a.tot)}</td>
+        <td style="white-space:nowrap;font-size:12px">${Object.entries(a.per).map(([k,p])=>esc(k)+": "+ST.map(s=>p.q[s.kode]||0).join("/")+(p.tels.size>1?` <b style="color:var(--bad)">(${esc([...p.who].join(" + "))})</b>`:"")).join("<br>")}</td>
+        ${c.hasDis?`<td class="n">${a.sys?fmt(a.sysTot):"–"}</td><td class="n ${a.diff>0?"pos":a.diff<0?"neg":""}">${a.diff>0?"+":""}${fmt(a.diff)}</td>`:""}
+        <td>${[...a.flags].map(f=>`<span class="flag ${FLAGS[f][0]}">${FLAGS[f][1]}</span>`).join("")}</td></tr>`).join("")||`<tr><td colspan="9" class="hint">Ingen treff.</td></tr>`}</table>`}
+  else if(admin.tab==="avvik"){const L=c.list.filter(a=>a.diffNy||a.diffBr).filter(a=>match(a.nr,a.navn)).sort((x,y)=>Math.abs(y.diff)-Math.abs(x.diff));
+    tbl=`<table><tr><th>Art.nr</th><th>Navn</th><th class="n">Talt Ny</th><th class="n">Discos Ny</th><th class="n">Diff Ny</th><th class="n">Talt Brukt</th><th class="n">Discos Brukt</th><th class="n">Diff Brukt</th></tr>
+      ${L.map(a=>`<tr><td class="mono">${esc(a.nr)}</td><td>${esc(a.navn)}${a.flags.has("ikketalt")?' <span class="flag bad">ikke talt</span>':""}</td><td class="n">${fmt(a.q.ny||0)}</td><td class="n">${fmt((a.sys&&a.sys.ny)||0)}</td><td class="n ${a.diffNy>0?"pos":a.diffNy<0?"neg":""}">${a.diffNy>0?"+":""}${fmt(a.diffNy)}</td>
+        <td class="n">${fmt(a.q.brukt||0)}</td><td class="n">${fmt((a.sys&&a.sys.brukt)||0)}</td><td class="n ${a.diffBr>0?"pos":a.diffBr<0?"neg":""}">${a.diffBr>0?"+":""}${fmt(a.diffBr)}</td></tr>`).join("")||`<tr><td colspan="8" class="hint">Ingen avvik.</td></tr>`}</table>`}
+  else if(admin.tab==="flagg"){const L=flagged.filter(a=>match(a.nr,a.navn));
+    tbl=`<table><tr><th>Art.nr</th><th>Navn</th><th>Flagg</th><th>Per sektor</th></tr>${L.map(a=>`<tr><td class="mono">${esc(a.nr)}</td><td>${esc(a.navn)}</td><td>${[...a.flags].map(f=>`<span class="flag ${FLAGS[f][0]}">${FLAGS[f][1]}</span>`).join("")}</td>
+      <td style="font-size:12px">${Object.entries(a.per).map(([k,p])=>esc(k)+": "+ST.map(s=>p.q[s.kode]||0).join("/")+" ("+esc([...p.who].join(", "))+")").join("<br>")}</td></tr>`).join("")||`<tr><td colspan="4" class="hint">Ingen flagg.</td></tr>`}</table>`}
+  else if(admin.tab==="mangler"){const L=[];c.sectors.forEach(x=>x.missing.forEach(nr=>{const na=(admin.data.artikler||{})[nr]||nameOf(nr);if(match(nr,na)) L.push([x.code,nr,na])}));
+    tbl=`<table><tr><th>Sektor</th><th>Art.nr</th><th>Navn</th></tr>${L.map(([k,nr,na])=>`<tr><td>${esc(k)}</td><td class="mono">${esc(nr)}</td><td>${esc(na)}</td></tr>`).join("")||`<tr><td colspan="3" class="hint">Alt fra listene er registrert.</td></tr>`}</table>`}
+  else if(admin.tab==="siste"){const L=[...c.rows].sort((x,y)=>y.mot.localeCompare(x.mot)).filter(r=>match(r.nr,r.navn)).slice(0,60);
+    tbl=`<table><tr><th>Mottatt</th><th>Sektor</th><th>Talt av</th><th>Art.nr</th><th>Navn</th>${ST.map(s=>`<th class="n">${esc(s.navn)}</th>`).join("")}<th>Utregning</th></tr>
+      ${L.map(r=>`<tr><td style="white-space:nowrap">${fmtTime(r.mot)}</td><td>${esc(r.sektor)}</td><td>${esc(r.by)}</td><td class="mono">${esc(r.nr)}</td><td>${esc(r.navn)}</td>${ST.map(s=>`<td class="n">${fmt(r.q[s.kode])}</td>`).join("")}<td class="mono" style="font-size:12px">${ST.map(s=>r.e[s.kode]).filter(Boolean).map(esc).join(" | ")}</td></tr>`).join("")}</table>`}
+  const tabs=[["sum",`Sum per artikkel (${c.list.filter(a=>a.tot>0).length})`],...(c.hasDis?[["avvik",`Avvik mot Discos (${diffN})`]]:[]),["flagg",`Flagg (${flagged.length})`],["mangler",`Fra liste – mangler (${missingTot})`],["siste","Siste registreringer"]];
+  const tabCnt={sum:[c.list.filter(a=>a.tot>0).length,""],avvik:[diffN,diffN?"warn":""],flagg:[flagged.length,flagged.length?"bad":""],mangler:[missingTot,missingTot?"warn":""],siste:[null,""]};
+  const tabNm={sum:"Sum per artikkel",avvik:"Avvik mot Discos",flagg:"Flagg",mangler:"Fra liste – mangler",siste:"Siste registreringer"};
+  const side=`<aside class="adm-side"><div class="sb-brand">${LOGO_IMG(180)}<div class="sb-sub">TELLING ${esc(String(CFG.lager||"").toUpperCase())} · ADMIN</div></div>
+    <nav class="sb-nav"><div class="sb-group">OVERSIKT</div>
+      ${tabs.map(([k])=>`<button class="sb-item ${admin.tab===k?"on":""}" data-atab="${k}"><span>${tabNm[k]}</span>${tabCnt[k][0]!==null?`<em class="${admin.tab===k?"":tabCnt[k][1]}">${fmt(tabCnt[k][0])}</em>`:""}</button>`).join("")}
+      <div class="sb-group">HANDLINGER</div>
+      <button class="sb-item" data-act="admin-refresh"><span>${admin.loading?"Henter…":"Oppdater nå"}</span></button>
+      <button class="sb-item" data-act="admin-xlsx"><span>Last ned Excel</span></button>
+      <button class="sb-item" data-act="home"><span>‹ Tilbake til start</span></button></nav>
+    <div class="sb-foot"><div class="sb-user"><span class="av">ŁZ</span><span><b>Łukasz Zając</b><small>admin · lager ${esc(CFG.lager||"")}</small></span></div>
+      <div class="credit"><small>UTVIKLET AV</small><b>Łukasz Zając</b></div></div></aside>`;
+  return `<div class="adm-wrap">${side}<div class="adm-main">`+bar("Telling 581 – Admin",{back:true,meta:`Oppdatert ${admin.at?admin.at.toLocaleTimeString("nb-NO"):"–"}<br><span style="font-size:12px;opacity:.8">auto hvert 30. sek</span>`})+
+  `<div class="content">
+    ${admin.err?`<div class="banner bad">${esc(admin.err)} – viser sist hentede data.</div>`:""}
+    <div class="kpis">
+      <div class="kpi ${ferdig===c.sectors.length&&c.sectors.length?"ok":""}"><span>Sektorer ferdig</span><b>${ferdig} / ${c.sectors.length}</b></div>
+      <div class="kpi"><span>Artikler registrert</span><b>${fmt(c.list.filter(a=>a.tot>0||Object.keys(a.per).length).length)}</b><small>${fmt(c.rows.length)} linjer</small></div>
+      <div class="kpi"><span>Tellere aktive nå</span><b>${c.activeTels.size}</b><small>${c.tels.size} telefoner totalt</small></div>
+      <div class="kpi ${flagged.length?"bad":"ok"}"><span>Flagg å sjekke</span><b>${flagged.length}</b></div>
+      <div class="kpi ${missingTot?"warn":"ok"}"><span>Fra liste – mangler</span><b>${fmt(missingTot)}</b></div>
+      ${c.hasDis?`<div class="kpi ${diffN?"warn":"ok"}"><span>Avvik mot Discos</span><b>${fmt(diffN)}</b><small>artikler</small></div>`:""}
+    </div>
+    <div class="card"><h3>Sektorer</h3><table><tr><th>Sektor</th><th>Status</th><th>Talt av</th><th class="n">Registrert</th><th class="n">Fra liste</th><th class="n">Mangler</th><th>Siste aktivitet</th></tr>
+      ${c.sectors.map(x=>`<tr><td><b>${esc(x.code)}</b></td><td><span class="flag st-${x.status}">${stLbl[x.status]}</span>${x.active?' <span class="flag info">aktiv nå</span>':""}</td><td>${esc(x.who.join(", ")||"–")}</td>
+        <td class="n">${fmt(x.reg)}</td><td class="n">${x.exp?`${x.expDone} / ${x.exp}`:"–"}</td><td class="n" style="color:${x.missing.length?"var(--warn)":"inherit"}">${x.exp?fmt(x.missing.length):"–"}</td><td>${fmtTime(x.last)}</td></tr>`).join("")}</table></div>
+    <div class="chips atabs" style="margin-bottom:8px">${tabs.map(([k,t])=>`<button class="chip ${admin.tab===k?"on":""}" data-atab="${k}">${t}</button>`).join("")}</div>
+    <div class="adm-tools"><div class="search small"><span>⌕</span><input id="aq2" class="field" placeholder="Søk artikkelnr eller navn" value="${esc(admin.q)}" autocomplete="off"></div>
+      ${!c.hasDis?`<span class="hint" style="margin:0">Tips: lim inn beholdning fra Discos i fanen <b>Discos</b> (artikkelnr, Ny, Brukt) for å se avvik.</span>`:""}</div>
+    <div class="card" id="admtbl">${tbl}</div>
+    <div class="chips" style="justify-content:center"><button class="link" data-act="admin-logout">Logg ut av admin på denne PC-en</button></div>
+  </div>
+  <div class="foot"><button class="btn ghost" data-act="admin-refresh">${admin.loading?"Henter…":"Oppdater nå"}</button><button class="btn primary grow" data-act="admin-xlsx">Last ned Excel</button></div></div></div>`;
+}
+async function adminExcel(){
+  if(!admin.data) return;const c=adminCompute();const ST=c.ST;
+  const secs=c.sectors.map(x=>x.code);
+  const sumHead=["Artikkelnr","Navn",...ST.map(s=>s.navn),"Totalt",...(c.hasDis?["Discos Ny","Discos Brukt","Diff Ny","Diff Brukt"]:[]),...secs.flatMap(k=>ST.map(s=>`${k} ${s.navn}`)),"Flagg"];
+  const sumRows=c.list.filter(a=>a.tot>0||a.flags.size).map(a=>[a.nr,a.navn,...ST.map(s=>a.q[s.kode]||0),a.tot,...(c.hasDis?[(a.sys&&a.sys.ny)||0,(a.sys&&a.sys.brukt)||0,a.diffNy,a.diffBr]:[]),...secs.flatMap(k=>ST.map(s=>a.per[k]?(a.per[k].q[s.kode]||0):"")),[...a.flags].map(f=>FLAGS[f][1]).join(", ")]);
+  const secHead=["Sektor","Status","Talt av","Registrert","Fra liste registrert","På liste","Mangler","Siste aktivitet"];
+  const secRows=c.sectors.map(x=>[x.code,{ferdig:"Ferdig",pagar:"Pågår",ikke:"Ikke startet"}[x.status],x.who.join(", "),x.reg,x.expDone,x.exp,x.missing.length,fmtTime(x.last)]);
+  const misRows=[];c.sectors.forEach(x=>x.missing.forEach(nr=>misRows.push([x.code,nr,(admin.data.artikler||{})[nr]||""])));
+  const lineHead=["Mottatt","Telefon","Talt av","Sektor","Artikkelnr","Navn",...ST.map(s=>s.navn),...ST.map(s=>"Utregning "+s.navn)];
+  const lineRows=c.rows.map(r=>[fmtTime(r.mot),r.tel,r.by,r.sektor,r.nr,r.navn,...ST.map(s=>r.q[s.kode]),...ST.map(s=>r.e[s.kode])]);
+  const base=`Telling_581_reservedeler_ADMIN_${nowStr().slice(0,16).replace(/[ :]/g,"-")}`;
+  try{const X=await loadXLSX();const wb=X.utils.book_new();
+    const add=(n,h,d,w)=>{const ws=X.utils.aoa_to_sheet([h,...d]);ws["!cols"]=h.map((_,i)=>({wch:w[i]||12}));ws["!autofilter"]={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:d.length,c:h.length-1}})};X.utils.book_append_sheet(wb,ws,n)};
+    add("Sum per artikkel",sumHead,sumRows,[12,42]);add("Sektorer",secHead,secRows,[10,12,24]);add("Fra liste mangler",["Sektor","Artikkelnr","Navn"],misRows,[10,12,42]);add("Alle linjer",lineHead,lineRows,[13,10,12,10,12,42]);
+    X.writeFile(wb,base+".xlsx");toast("Excel lastet ned")}
+  catch(e){downloadText(base+".csv","﻿"+[sumHead,...sumRows].map(r=>r.map(v=>typeof v==="number"?v:q(v)).join(";")).join("\r\n"));toast("Lagret som CSV")}
+}
+
+/* ================= HENDELSER ================= */
+function bindScreen(){
+  document.querySelectorAll("#screen [data-sector]").forEach(b=>b.onclick=()=>{
+    if(!S.name.trim()){toast("Skriv navnet ditt først");$("#nm").focus();return}
+    if(serverUrl()&&!S.pin){toast("Skriv koden først");const pi=$("#pin");if(pi) pi.focus();return}
+    go("sector",{sector:b.dataset.sector})});
+  const nm=$("#nm");if(nm) nm.oninput=()=>{S.name=nm.value;save()};
+  document.querySelectorAll("#screen [data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  document.querySelectorAll("#screen [data-filter]").forEach(b=>b.onclick=()=>{view.filter=b.dataset.filter;render()});
+  document.querySelectorAll("#screen [data-mt]").forEach(b=>b.onclick=()=>{mergeTelling=b.dataset.mt;render()});
+  document.querySelectorAll("#screen [data-atab]").forEach(b=>b.onclick=()=>{admin.tab=b.dataset.atab;const y=window.scrollY;render();window.scrollTo(0,y)});
+  const aq2=$("#aq2");if(aq2) aq2.oninput=()=>{admin.q=aq2.value;const y=window.scrollY;const pos=aq2.selectionStart;render();window.scrollTo(0,y);const f=$("#aq2");f.focus();try{f.setSelectionRange(pos,pos)}catch(e){}};
+  const ap=$("#apin");if(ap) ap.onkeydown=e=>{if(e.key==="Enter") act("admin-pin")};
+  const qi=$("#q");if(qi){qi.oninput=()=>{view.q=qi.value;updateListOnly()};qi.onkeydown=e=>{if(e.key==="Enter") qi.blur()}}
+  const fi=$("#files");if(fi) fi.onchange=async()=>{
+    try{let rows=[];const files=[];for(const f of fi.files){rows=rows.concat(parseCountFile(await f.text(),f.name));files.push(f.name)}
+      merged={rows,files};mergeTelling=null;render()}catch(e){toast(e.message||"Kunne ikke lese filen")}};
+  const ir=$("#imp-reg");if(ir) ir.onchange=async()=>{try{toast(await importRegister(ir.files[0]));render()}catch(e){toast("Feil: "+(e.message||"kunne ikke lese filen"))}};
+  const is=$("#imp-sec");if(is) is.onchange=async()=>{try{toast(await importSectors(is.files[0]));render()}catch(e){toast("Feil: "+(e.message||"kunne ikke lese filen"))}};
+  document.querySelectorAll(".js-sync").forEach(b=>b.onclick=()=>act("sync-now"));
+  bindList();
+}
+function bindList(){
+  document.querySelectorAll("#list [data-nr]").forEach(b=>b.onclick=()=>{const nr=b.dataset.nr;
+    if(view.filter==="mangler") openCount(nr,{}); else openCount(nr,{edit:true})});
+}
+function bindSheet(){
+  const el=$("#sheet");
+  el.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>key(b.dataset.k));
+  el.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{sheet.mode=b.dataset.mode;renderSheet()});
+  el.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>setSt(b.dataset.st));
+  el.querySelectorAll("[data-wf]").forEach(b=>b.onclick=()=>{sheet.w.active=+b.dataset.wf;renderSheet()});
+  el.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  el.querySelectorAll("[data-addnr]").forEach(b=>b.onclick=()=>pickNr(b.dataset.addnr));
+  el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pickNr(b.dataset.pick));
+  const aq=$("#aq");if(aq) aq.oninput=()=>{sheet.q=aq.value;const pos=aq.selectionStart;renderSheet();const n=$("#aq");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
+}
+function act(a){
+  switch(a){
+    case "home": go("start"); break;
+    case "export": go("export"); break;
+    case "merge": go("merge"); break;
+    case "oppsett": go("oppsett"); break;
+    case "admin": go("admin"); if(S.adminPin) adminLoad(); break;
+    case "admin-pin": {const v=($("#apin").value||"").trim();if(!v){toast("Skriv admin-koden");return}S.adminPin=v;save();admin.err="";adminLoad();break}
+    case "admin-refresh": adminLoad(); break;
+    case "admin-xlsx": adminExcel(); break;
+    case "admin-logout": S.adminPin="";admin.data=null;save();render(); break;
+    case "download": downloadText(fileName(),buildCSV()); break;
+    case "share": shareCSV(); break;
+    case "scan": closeSheet(); openScanner(); break;
+    case "enter": openEntry(); break;
+    case "back-nr": openEntry(); break;
+    case "to-edit": openCount(sheet.nr,{edit:true,fromScan:sheet.fromScan}); break;
+    case "unk-add": {const nr=sheet.nr,ser=sheet.ser,fs=sheet.fromScan;const na=($("#una").value||"").trim();if(!na){toast("Skriv en kort beskrivelse");$("#una").focus();return}
+      S.extraNames[nr]=na+" (ikke i register)";save();
+      if(ser){closeSheet();registerSerial(nr,ser);openScanner()} else openCount(nr,{fromScan:fs});break}
+    case "unk-retype": openEntry(sheet.nr); break;
+    case "finish": openSheet({type:"finish"}); break;
+    case "finish-ok": S.done[view.sector]=true;markSectorDirty(view.sector);save();scheduleSync(100);toast(`${view.sector} ferdig`);go("start");break;
+    case "pin-ok": {const v=($("#pin").value||"").trim();if(!v){toast("Skriv koden");return}S.pin=v;syncState={status:"busy"};save();render();fetchRemoteCfg(true);scheduleSync(100);break}
+    case "srv-save": saveServer(); break;
+    case "srv-pull": fetchRemoteCfg(true).then(ok=>toast(ok?"Lister hentet fra Google Sheet":"Fant ingen lister i arket (eller ingen forbindelse)")); break;
+    case "sync-now": scheduleSync(0); break;
+    case "show-missing": closeSheet(); view.filter="mangler"; view.q=""; render(); break;
+    case "close": closeSheet(); break;
+    case "reset-merge": merged=null; render(); break;
+    case "xlsx-merged": exportMerged(); break;
+    case "bake": bakeApp(); break;
+    case "reset-cfg": openSheet({type:"confirm",title:"Bruke innebygd konfigurasjon?",text:"Importerte lister på denne enheten fjernes. Tellinger beholdes.",ok:"Ja, tilbakestill",
+      run:()=>{lsDel(CFGKEY);CFG=EMBEDDED;LOCALCFG=false;fixSt();closeSheet();render()}}); break;
+    case "wipe": openSheet({type:"confirm",danger:true,title:"Slette alle tellinger?",text:(Object.keys(S.dirty).length?`<b style="color:var(--bad)">${Object.keys(S.dirty).length} registreringer er ikke sendt til serveren ennå!</b><br>`:"")+(serverUrl()?"Det som er sendt ligger trygt i Google Sheet. ":"<b>Send filen først.</b> ")+"Alle registreringer på denne telefonen slettes.",ok:"Slett alt",
+      run:()=>{S=blankState(S);fixSt();save();closeSheet();toast("Tellinger slettet");go("start")}}); break;
+    case "confirm-ok": if(sheet.run) sheet.run(); break;
+  }
+}
+$("#scrim").onclick=closeSheet;
+document.addEventListener("keydown",e=>{
+  if(sheet.type!=="count"||e.target.tagName==="INPUT") return;
+  if(sheet.step==="nr"){ if(/^[0-9]$/.test(e.key)) key(e.key); else if(e.key==="Backspace") key("del"); else if(e.key==="Enter") key("ok"); else if(e.key==="Escape") closeSheet(); else return; e.preventDefault(); return; }
+  if(/^[0-9]$/.test(e.key)) key(e.key);
+  else if(e.key==="*"||e.key==="x"||e.key==="X") key("×");
+  else if(e.key==="+") key("+");
+  else if(e.key===","||e.key===".") {if(sheet.mode==="vekt") key("+"); else return}
+  else if(e.key==="Backspace") key("del");
+  else if(e.key==="Enter") key("ok");
+  else if(e.key==="Escape") closeSheet();
+  else if(e.key==="Tab"&&sheet.mode!=="vekt"){const ST=STATS();setSt(ST[(sidx(sheet.st)+1)%ST.length].kode)}
+  else return;
+  e.preventDefault();
+});
+window.addEventListener("beforeunload",()=>{save()});
+render();
+if(serverUrl()&&S.pin){fetchRemoteCfg(false);scheduleSync(500)}
+})();
+</script>
+</body>
+</html>
