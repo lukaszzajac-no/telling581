@@ -290,7 +290,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-03 v2 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v3 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -909,11 +909,15 @@ function loop(){
 function handleCodes(codes){
   let art=null,ser=null;
   codes.forEach(c=>{const t=String(c.rawValue||"").trim();if(c.format==="qr_code"){if(t) ser=t} else if(/^\d{5,10}$/.test(t)) art=t});
-  if(!art&&!ser){scan.prev="";return}
+  if(!art&&!ser){scan.prev="";scan.n=0;scan.warn=null;return}
   const k=(art||"")+"|"+(ser||"");
-  if(k!==scan.prev){scan.prev=k;return}  // samme kode i to bilder på rad = sikker lesning
-  scan.prev="";onScan(art,ser);
+  if(k!==scan.prev){scan.prev=k;scan.n=1;return}  // samme kode i to bilder på rad = sikker lesning
+  scan.n=(scan.n||1)+1;
+  /* bare strekkode: vent litt lenger, så en liten QR (serienr) rekker å bli lest */
+  if(art&&!ser&&scan.n<5){if(scan.n===2&&scan.warn!==art) setStat(normNr(art)+" – leser …",false,"Har etiketten QR-kode? Hold hele etiketten i bildet.");return}
+  scan.prev="";scan.n=0;onScan(art,ser);
 }
+function hasSerials(nr){return Object.values(S.serials||{}).some(m=>m&&m[nr]&&m[nr].length)}
 function flash(){const el=$("#scanner");el.classList.add("hit");setTimeout(()=>el.classList.remove("hit"),350);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
 function onScan(rawArt,ser){
   if(ser&&!rawArt){setStat(`Serienr ${ser} – mangler strekkode`,true,"Hold hele etiketten i bildet (strekkode + QR).");return}
@@ -921,6 +925,7 @@ function onScan(rawArt,ser){
   const art=findKnown(view.sector,rawArt);
   if(!art){closeScanner();openSheet({type:"unknown",nr:normNr(rawArt),ser,fromScan:true});return}
   if(ser){registerSerial(art,ser);return}
+  if(hasSerials(art)){scan.warn=rawArt;setStat(nameOf(art)+" har serienummer",true,"Hold hele etiketten i bildet – strekkode + QR-kode.");return}
   closeScanner();openCount(art,{fromScan:true});
 }
 function registerSerial(art,ser){
