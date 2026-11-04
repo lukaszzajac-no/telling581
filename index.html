@@ -267,6 +267,7 @@ tr.conflict td{background:var(--bad-soft)}
 .sc-frame i::after{content:"";position:absolute;left:5%;right:5%;top:10%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30;animation:scanline 2s ease-in-out infinite}
 @keyframes scanline{0%,100%{top:10%}50%{top:90%}}
 .scanner.hit .sc-frame i{border-color:#34c759}
+.scanner.qrmode .sc-frame i{aspect-ratio:1/1;width:72%;max-width:380px;border-color:#34c7ff}
 .sc-bottom{position:relative;z-index:2;background:#fff;color:var(--ink);border-radius:10px 10px 0 0;border-top:4px solid var(--yellow);padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
 .sc-stat{font-weight:700;font-size:16px;color:var(--navy);min-height:24px}
 .sc-stat.warn{color:var(--bad)}
@@ -295,7 +296,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v9 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v10 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -367,6 +368,9 @@ const nameOf=nr=>(CFG.artikler&&CFG.artikler[nr])||S.extraNames[nr]||(String(nr)
 /* Hovednummer med serienr-type (f.eks. 580100000 + QR 507927130): telles som egen linje "hovednr/serienr" med antall Ny/Brukt */
 function variantName(nr){const [a,v]=String(nr).split("/");const n=(CFG.artikler||{})[v];return (n||("Serienr "+v))+" · "+a}
 const isVariantSer=v=>/^\d{5,12}$/.test(String(v||"").trim());
+/* hovednumre som ALLTID har serienummer (QR): fast liste + artikler med «skann QR» eller «[serienr]» i navnet (fanen Artikler) */
+const SERMAIN=["580100000"];
+function isSerMainCfg(nr){nr=String(nr||"");return SERMAIN.includes(nr)||/skann qr|\[serienr\]/i.test(String((CFG.artikler||{})[nr]||""))}
 const inRegister=nr=>!!(CFG.artikler&&CFG.artikler[nr]);
 function normNr(x){x=String(x==null?"":x).trim().replace(/\.0+$/,"");if(/^\d{5}$/.test(x)) x="0"+x;return x}
 function expected(code){const s=sec(code);return s?s.artikler:[]}
@@ -713,7 +717,7 @@ function openSheet(s){sheet=s;renderSheet();$("#sheet").classList.add("open");$(
 function closeSheet(){sheet={type:null};$("#sheet").classList.remove("open");$("#scrim").classList.remove("open")}
 function renderSheet(){
   const el=$("#sheet");
-  el.innerHTML=sheet.type==="count"?countSheet():sheet.type==="add"?addSheet():sheet.type==="finish"?finishSheet():sheet.type==="unknown"?unknownSheet():sheet.type==="confirm"?confirmSheet():"";
+  el.innerHTML=sheet.type==="count"?countSheet():sheet.type==="add"?addSheet():sheet.type==="finish"?finishSheet():sheet.type==="unknown"?unknownSheet():sheet.type==="ser"?serSheet():sheet.type==="confirm"?confirmSheet():"";
   bindSheet();
 }
 const head=(nr,na)=>`<div class="grab"></div><div class="sh-head"><div style="flex:1"><div class="nr mono">${esc(nr)} · ${esc(view.sector)}</div><div class="na">${esc(na)}</div></div><button class="back xbtn" data-act="close" aria-label="Lukk">✕</button></div>`;
@@ -738,7 +742,7 @@ function countSheet(){
     return head(nr,nameOf(nr))+`<div class="nb" style="${cols};margin-top:12px">${ST.map((s,i)=>`<div class="nbx s${i}"><span class="lab">${esc(s.navn.toUpperCase())} <i>${esc(s.merke||"")}</i></span><span class="ex">serienr</span><b>${sl.filter(x=>x.st===s.kode).length}</b></div>`).join("")}</div>
     <div class="serials">${sl.map(x=>`<span class="mono c${sidx(x.st)}">${esc(x.sn)} · ${esc((STATS()[sidx(x.st)]||{}).merke||x.st)}</span>`).join("")}</div>
     <p class="hint">Antall = antall skannede serienumre. Skann etiketten (strekkode + QR) på hver enhet.</p>
-    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="scan">Skann flere</button><button class="btn ghost block" data-act="close">Ferdig</button></div>`;
+    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="ser-scan">Skann flere</button><button class="btn ghost block" data-act="close">Ferdig</button></div>`;
   }
   const old=cnt(view.sector,nr);
   const note=old&&!sheet.edit?`<div class="addnote">Allerede registrert her: <b>${ST.map(s=>esc(s.navn)+" "+fmt(old.q[s.kode]||0)).join(" · ")}</b>. Det du skriver nå <b>legges til</b>. <button class="link" data-act="to-edit" style="padding:0">Endre i stedet</button></div>`
@@ -786,6 +790,21 @@ function unknownSheet(){
     <button class="btn ghost block" data-act="unk-retype">Skriv nummeret på nytt</button>
     <button class="btn ghost block" data-act="scan">Skann på nytt</button></div></div>`;
 }
+/* serienummer for et hovednummer (580100000 o.l.): skann QR, skriv inn eller velg kjent type */
+function openSer(main,fromScan){openSheet({type:"ser",main,q:"",fromScan:!!fromScan});setTimeout(()=>{const x=$("#serq");if(x) x.focus()},230)}
+function serKnown(main){const p=main+"/";const s=new Set(knownPool(view.sector).filter(x=>x.startsWith(p)));Object.keys(S.counts[view.sector]||{}).forEach(x=>{if(x.startsWith(p)) s.add(x)});return [...s]}
+function serSheet(){
+  const m=sheet.main,q=(sheet.q||"").trim().toLowerCase();const ST=STATS();
+  const list=serKnown(m).filter(k=>!q||k.toLowerCase().includes(q)||nameOf(k).toLowerCase().includes(q)).slice(0,30);
+  const ul=sers(view.sector,m);const letters=/[a-z]/i.test(sheet.q||"");
+  return head(m,nameOf(m))+`<p class="hint" style="margin-top:10px">Har serienummer. <b>Skann QR-koden</b> på etiketten – eller skriv serienummeret / velg typen under.</p>
+    <div class="stack" style="margin-top:8px"><button class="btn primary block" data-act="ser-scan">Skann QR-kode</button></div>
+    <label class="lbl" for="serq" style="margin-top:12px">Serienummer</label>
+    <div style="display:flex;gap:8px"><input id="serq" class="field mono" style="flex:1" placeholder="f.eks. 507927130" value="${esc(sheet.q||"")}" autocomplete="off" autocapitalize="characters" enterkeyhint="done"><button class="btn navy" data-act="ser-ok">OK</button></div>
+    ${letters||ul.length?`<div class="stsel" style="margin-top:8px">Enkeltstk. som: ${ST.map((s,i)=>`<button class="s${i} ${S.st===s.kode?"on":""}" data-st="${esc(s.kode)}">${esc(s.navn)}</button>`).join("")}</div>`:""}
+    ${ul.length?`<p class="hint">Enkeltstk. registrert her: ${ul.length}</p>`:""}
+    <div class="cands" style="margin-top:8px">${list.map(k=>`<button class="cand" data-serpick="${esc(k)}"><span class="mono">${esc(k.split("/")[1])}</span><span class="na">${esc(nameOf(k))}</span>${cnt(view.sector,k)?'<span class="pill ok">reg.</span>':""}</button>`).join("")}</div>`;
+}
 function finishSheet(){
   const code=view.sector;const st=stats(code);const miss=sharedGroup(code)?0:st.exp-st.expDone;
   if(!miss) return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">Fullføre ${esc(code)}?</div></div>
@@ -814,7 +833,7 @@ function openCount(nr,opts){
   let st=S.st;if(c&&opts.edit){const nz=ST.filter(s=>c.q[s.kode]);if(nz.length===1) st=nz[0].kode}
   openSheet({type:"count",step:"qty",nr,edit:!!opts.edit,mode:"antall",vals,wnote:{},st,fromScan:!!opts.fromScan,w:{v:["20","",""],active:1}});
 }
-function pickNr(nr){if(!String(nr).includes("/")&&isSerialMain(nr)){openSheet({type:"count",step:"nr",typed:nr});toast("Velg serienr-type i listen – eller skann etiketten");return}openCount(nr,{})}
+function pickNr(nr){if(!String(nr).includes("/")&&isSerialMain(nr)){openSer(nr,false);return}openCount(nr,{})}
 function setSt(st){sheet.st=st;S.st=st;save();renderSheet()}
 function commit(){
   const ST=STATS();
@@ -866,40 +885,63 @@ function updateListOnly(){const l=$("#list");if(l){l.innerHTML=listHTML();bindLi
 function scrollToItem(nr){const b=document.querySelector(`.item[data-nr="${CSS.escape(nr)}"]`);if(b) b.scrollIntoView({block:"center",behavior:"smooth"})}
 
 /* ================= SKANNER (Chrome Android: BarcodeDetector, krever https) ================= */
-const scan={on:false,stream:null,det:null,timer:null,prev:"",paused:false,track:null,torch:false};
+const scan={on:false,stream:null,detBar:null,detQr:null,timer:null,prev:"",n:0,paused:false,track:null,torch:false,mode:"bar",main:null};
 function scannerHTML(){
   const ST=STATS();
   return `<video id="scanvid" playsinline muted></video>
-  <div class="sc-top"><button class="back" data-sc="close" aria-label="Lukk">✕</button><span class="sp">Skann etikett · ${esc(view.sector||"")}</span>
+  <div class="sc-top"><button class="back" data-sc="close" aria-label="Lukk">✕</button><span class="sp" id="scstep">Skann · ${esc(view.sector||"")}</span>
     <button class="back" id="torchbtn" data-sc="torch" aria-label="Lys" style="display:none">💡</button></div>
   <div class="sc-frame"><i></i></div>
   <div class="sc-bottom">
     <div class="sc-stat" id="scstat">Sikt mot strekkoden</div>
-    <div class="sc-sub" id="scsub">Strekkode = artikkel. Etikett med QR = registrerer serienummer.</div>
-    <div class="stsel">Serienr som: ${ST.map((s,i)=>`<button class="s${i} ${S.st===s.kode?"on":""}" data-scst="${esc(s.kode)}">${esc(s.navn)}</button>`).join("")}</div>
+    <div class="sc-sub" id="scsub"></div>
+    <div class="stsel" id="scstsel" style="display:none">Enkeltstk. som: ${ST.map((s,i)=>`<button class="s${i} ${S.st===s.kode?"on":""}" data-scst="${esc(s.kode)}">${esc(s.navn)}</button>`).join("")}</div>
     <div class="sc-demo" id="scdemo" style="display:none"></div>
-    <button class="btn ghost block" data-sc="type">Skriv nummer i stedet</button>
+    <div class="stack" id="scbtns"></div>
   </div>`;
 }
 function setStat(t,warn,sub){const a=$("#scstat");if(!a) return;a.textContent=t;a.classList.toggle("warn",!!warn);if(sub!==undefined) $("#scsub").textContent=sub}
-function showDemo(){
-  const exp=expected(view.sector);const a=exp.find(nr=>!cnt(view.sector,nr))||exp[0]||Object.keys(CFG.artikler||{})[0];
-  const d=$("#scdemo");if(!d) return;d.style.display="grid";
-  d.innerHTML=`<div class="hint" style="margin:0">Test uten kamera:</div>
-    ${a?`<button data-demo="${esc(a)}">Simuler strekkode <b class="mono">${esc(a)}</b></button>`:""}
-    <button data-demo="12345678">Simuler ukjent strekkode <b class="mono">12345678</b></button>
-    <button data-demo="583034000|DFF-00${String(11+Math.floor(Math.random()*80))}">Simuler serienr-etikett <b class="mono">583034000 + QR</b></button>`;
-  d.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.demo.split("|");onScan(x,y||null);if(y) showDemo()});
+/* Steg 1 = BARE strekkode (QR ignoreres). Er nummeret et hovednummer med serienr (580100000 o.l.), går appen til
+   steg 2 = BARE QR-kode (serienr) – eller serienr skrives inn. Hovednr + serienr = én linje. */
+function setMode(m,main,keep){
+  scan.mode=m;scan.main=m==="qr"?main:null;scan.prev="";scan.n=0;
+  const step=$("#scstep");if(!step) return;const qr=m==="qr";
+  step.textContent=(qr?"Steg 2 · QR-kode":"Steg 1 · Strekkode")+" · "+(view.sector||"");
+  $("#scstsel").style.display=qr?"":"none";$("#scanner").classList.toggle("qrmode",qr);
+  $("#scbtns").innerHTML=qr?`<button class="btn ghost block" data-sc="sertype">Skriv serienummer i stedet</button><button class="btn ghost block" data-sc="bar" style="border:0">‹ Tilbake til strekkode</button>`
+    :`<button class="btn ghost block" data-sc="type">Skriv nummer i stedet</button>`;
+  if(!keep){if(qr) setStat(main+" – skann QR-koden",false,nameOf(main)+". Hold QR-koden i rammen – eller skriv serienummeret.");
+    else setStat("Sikt mot strekkoden",false,"Bare strekkoden leses. Er det et hovednummer med serienr (f.eks. 580100000), ber appen om QR-koden etterpå.")}
+  const d=$("#scdemo");if(d&&d.style.display!=="none") showDemo();
 }
-async function openScanner(){
+function showDemo(){
+  const d=$("#scdemo");if(!d) return;d.style.display="grid";
+  if(scan.mode==="qr"){
+    d.innerHTML=`<div class="hint" style="margin:0">Test uten kamera:</div>
+      <button data-demoq="507927130">Simuler QR <b class="mono">507927130</b></button>
+      <button data-demoq="DFF-00${String(11+Math.floor(Math.random()*80))}">Simuler QR <b class="mono">DFF-00…</b> (enkeltstk.)</button>`;
+  }else{
+    const exp=expected(view.sector);const a=exp.find(nr=>!nr.includes("/")&&!isSerialMain(nr)&&!cnt(view.sector,nr))||Object.keys(CFG.artikler||{}).find(nr=>!nr.includes("/")&&!isSerialMain(nr));
+    d.innerHTML=`<div class="hint" style="margin:0">Test uten kamera:</div>
+      ${a?`<button data-demo="${esc(a)}">Simuler strekkode <b class="mono">${esc(a)}</b></button>`:""}
+      <button data-demo="580100000">Simuler strekkode <b class="mono">580100000</b> (serienr)</button>
+      <button data-demo="12345678">Simuler ukjent strekkode <b class="mono">12345678</b></button>`;
+  }
+  d.querySelectorAll("[data-demo]").forEach(b=>b.onclick=()=>onScan(b.dataset.demo));
+  d.querySelectorAll("[data-demoq]").forEach(b=>b.onclick=()=>onSerial(scan.main,b.dataset.demoq));
+}
+async function openScanner(main){
   if(!view.sector){toast("Velg sektor først");return}
+  main=typeof main==="string"?main:null;
   const el=$("#scanner");el.innerHTML=scannerHTML();el.classList.add("open");el.classList.remove("hit");
-  scan.on=true;scan.paused=false;scan.prev="";bindScanner();
+  scan.on=true;scan.paused=false;bindScanner();setMode(main?"qr":"bar",main);
   if(!("BarcodeDetector" in window)||!navigator.mediaDevices||!window.isSecureContext||location.protocol==="content:"||location.protocol==="file:"){
     setStat("Kamera ikke tilgjengelig",true,(!window.isSecureContext||location.protocol!=="https:")?"Appen er åpnet som fil. Kameraet virker bare når appen åpnes fra en https-adresse – skriv nummeret i stedet.":"Denne nettleseren har ikke strekkodeleser – bruk Chrome på Android.");showDemo();return}
   try{
     const fm=await BarcodeDetector.getSupportedFormats();
-    scan.det=new BarcodeDetector({formats:["code_39","code_128","qr_code","ean_13"].filter(f=>fm.includes(f))});
+    const bf=["code_39","code_128","ean_13"].filter(f=>fm.includes(f));
+    scan.detBar=bf.length?new BarcodeDetector({formats:bf}):null;
+    scan.detQr=fm.includes("qr_code")?new BarcodeDetector({formats:["qr_code"]}):null;
     scan.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
     if(!scan.on){stopStream();return}
     const v=$("#scanvid");v.srcObject=scan.stream;await v.play();
@@ -912,53 +954,78 @@ async function openScanner(){
     showDemo()}
 }
 function stopStream(){if(scan.stream){scan.stream.getTracks().forEach(t=>t.stop());scan.stream=null}}
-function closeScanner(){scan.on=false;clearTimeout(scan.timer);stopStream();const el=$("#scanner");if(el){el.classList.remove("open");el.innerHTML=""}}
+function closeScanner(){scan.on=false;clearTimeout(scan.timer);stopStream();const el=$("#scanner");if(el){el.classList.remove("open","qrmode");el.innerHTML=""}}
+const curDet=()=>scan.mode==="qr"?scan.detQr:scan.detBar;
 function loop(){
-  if(!scan.on||!scan.det) return;
-  scan.det.detect($("#scanvid")).then(codes=>{if(!scan.paused) handleCodes(codes)}).catch(()=>{}).finally(()=>{if(scan.on) scan.timer=setTimeout(loop,120)});
+  if(!scan.on) return;const det=curDet();
+  if(!det){scan.timer=setTimeout(loop,300);return}
+  det.detect($("#scanvid")).then(codes=>{if(!scan.paused&&det===curDet()) handleCodes(codes)}).catch(()=>{}).finally(()=>{if(scan.on) scan.timer=setTimeout(loop,120)});
 }
 function handleCodes(codes){
-  let art=null,ser=null;
-  codes.forEach(c=>{const t=String(c.rawValue||"").trim();if(c.format==="qr_code"){if(t) ser=t} else if(/^\d{5,10}$/.test(t)) art=t});
-  if(!art&&!ser){scan.prev="";scan.n=0;scan.warn=null;return}
-  const k=(art||"")+"|"+(ser||"");
-  if(k!==scan.prev){scan.prev=k;scan.n=1;return}  // samme kode i to bilder på rad = sikker lesning
-  scan.n=(scan.n||1)+1;
-  /* bare strekkode: vent litt lenger, så en liten QR (serienr) rekker å bli lest */
-  if(art&&!ser&&scan.n<5){if(scan.n===2&&scan.warn!==art) setStat(normNr(art)+" – leser …",false,"Har etiketten QR-kode? Hold hele etiketten i bildet.");return}
-  scan.prev="";scan.n=0;onScan(art,ser);
+  if(scan.mode==="qr"){
+    let ser=null;codes.forEach(c=>{const t=String(c.rawValue||"").trim();if(c.format==="qr_code"&&t) ser=t});
+    if(!ser){scan.prev="";scan.n=0;return}
+    if(ser!==scan.prev){scan.prev=ser;scan.n=1;return}  // samme kode i to bilder på rad = sikker lesning
+    scan.prev="";scan.n=0;onSerial(scan.main,ser);return;
+  }
+  let art=null;codes.forEach(c=>{const t=String(c.rawValue||"").trim();if(c.format!=="qr_code"&&/^\d{5,10}$/.test(t)) art=t});
+  if(!art){scan.prev="";scan.n=0;return}
+  if(art!==scan.prev){scan.prev=art;scan.n=1;return}
+  scan.prev="";scan.n=0;onScan(art);
 }
 function hasSerials(nr){return Object.values(S.serials||{}).some(m=>m&&m[nr]&&m[nr].length)}
-function isSerialMain(nr){const p=nr+"/";return hasSerials(nr)||knownPool(view.sector).some(x=>x.startsWith(p))||Object.values(S.counts||{}).some(m=>Object.keys(m||{}).some(x=>x.startsWith(p)))}
+function isSerialMain(nr){const p=nr+"/";return isSerMainCfg(nr)||hasSerials(nr)||knownPool(view.sector).some(x=>x.startsWith(p))||Object.values(S.counts||{}).some(m=>Object.keys(m||{}).some(x=>x.startsWith(p)))}
 function flash(){const el=$("#scanner");el.classList.add("hit");setTimeout(()=>el.classList.remove("hit"),350);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
-function onScan(rawArt,ser){
-  if(ser&&!rawArt){setStat(`Serienr ${ser} – mangler strekkode`,true,"Hold hele etiketten i bildet (strekkode + QR).");return}
+/* steg 1: strekkode lest */
+function onScan(rawArt){
+  if(!rawArt) return;
   flash();
-  /* QR med bare tall = serienr-TYPE under hovednummeret (mange stk, Ny/Brukt) – telles med antall */
-  if(ser&&isVariantSer(ser)){const key=normNr(rawArt)+"/"+String(ser).trim();closeScanner();openCount(key,{fromScan:true});return}
-  const art=findKnown(view.sector,rawArt);
-  if(!art){closeScanner();openSheet({type:"unknown",nr:normNr(rawArt),ser,fromScan:true});return}
-  if(ser){registerSerial(art,ser);return}
-  if(isSerialMain(art)){scan.warn=rawArt;setStat(nameOf(art)+" har serienummer",true,"Hold hele etiketten i bildet – strekkode + QR-kode.");return}
-  closeScanner();openCount(art,{fromScan:true});
+  const known=findKnown(view.sector,rawArt);const nr=known||normNr(rawArt);
+  if(isSerialMain(nr)){setMode("qr",nr);scan.paused=true;setTimeout(()=>{scan.paused=false},500);try{navigator.vibrate&&navigator.vibrate([60,60,60])}catch(e){};return}
+  if(!known){closeScanner();openSheet({type:"unknown",nr,fromScan:true});return}
+  closeScanner();openCount(known,{fromScan:true});
 }
-function registerSerial(art,ser){
+/* steg 2: QR (serienr) lest for hovednummeret */
+function onSerial(main,ser){
+  ser=String(ser||"").trim();if(!main||!ser) return;
+  if(ser===main){setStat("Det var strekkoden – sikt mot QR-koden",true);return}
+  flash();
+  /* bare tall = serienr-TYPE (mange stk, Ny/Brukt) → telles med antall */
+  if(isVariantSer(ser)){closeScanner();openCount(main+"/"+ser,{fromScan:true});return}
+  /* med bokstaver (f.eks. DFF-0011) = én unik enhet → registreres, appen blir i QR-steget for neste enhet */
+  registerSerial(main,ser);
+}
+function addSerial(art,ser){
   const code=view.sector;S.serials[code]=S.serials[code]||{};const arr=S.serials[code][art]=S.serials[code][art]||[];
-  const dup=arr.find(x=>x.sn===ser);
-  if(dup){setStat(`${ser} er allerede skannet (${stName(dup.st)})`,true,`${nameOf(art)} – ${arr.length} stk registrert`);try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){};return}
+  const dup=arr.find(x=>x.sn===ser);if(dup) return {ok:false,dup,arr};
   arr.push({sn:ser,st:S.st});
   const qv={},ev={};STATS().forEach(s=>{qv[s.kode]=arr.filter(x=>x.st===s.kode).length;ev[s.kode]=qv[s.kode]?"serienr":""});
-  setCount(art,qv,ev);refreshList();
-  setStat(`✓ ${ser} registrert som ${stName(S.st)}`,false,`${nameOf(art)} – ${STATS().map(s=>s.navn+" "+qv[s.kode]).join(" · ")}. Skann neste.`);
-  scan.paused=true;setTimeout(()=>{scan.paused=false},900);
+  setCount(art,qv,ev);refreshList();return {ok:true,arr,qv};
+}
+function registerSerial(art,ser){
+  const r=addSerial(art,ser);
+  if(!r.ok){setStat(`${ser} er allerede skannet (${stName(r.dup.st)})`,true,`${nameOf(art)} – ${r.arr.length} stk registrert`);try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){};return false}
+  setStat(`✓ ${ser} registrert som ${stName(S.st)}`,false,`${nameOf(art)} – ${STATS().map(s=>s.navn+" "+r.qv[s.kode]).join(" · ")}. Skann neste QR – eller ‹ Tilbake til strekkode.`);
+  scan.paused=true;setTimeout(()=>{scan.paused=false},900);return true;
+}
+function serManual(main,v,fs){
+  if(!v){toast("Skriv serienummeret");return}
+  if(v===main){toast("Det er hovednummeret – skriv serienummeret");return}
+  if(isVariantSer(v)){openCount(main+"/"+v,{fromScan:fs});return}
+  const r=addSerial(main,v);
+  if(!r.ok){toast(`${v} er allerede registrert (${stName(r.dup.st)})`);return}
+  sheet.q="";renderSheet();toast(`✓ ${v} registrert som ${stName(S.st)}`);
 }
 function bindScanner(){
   const el=$("#scanner");
-  el.querySelectorAll("[data-sc]").forEach(b=>b.onclick=async()=>{const a=b.dataset.sc;
+  el.onclick=async e=>{const b=e.target.closest("[data-sc],[data-scst]");if(!b) return;
+    if(b.dataset.scst){S.st=b.dataset.scst;save();el.querySelectorAll("[data-scst]").forEach(x=>x.classList.toggle("on",x.dataset.scst===S.st));return}
+    const a=b.dataset.sc;
     if(a==="close") closeScanner();
     else if(a==="type"){closeScanner();const qi=$("#q");if(qi) qi.focus()}
-    else if(a==="torch"&&scan.track){scan.torch=!scan.torch;try{await scan.track.applyConstraints({advanced:[{torch:scan.torch}]})}catch(e){}}});
-  el.querySelectorAll("[data-scst]").forEach(b=>b.onclick=()=>{S.st=b.dataset.scst;save();el.querySelectorAll("[data-scst]").forEach(x=>x.classList.toggle("on",x.dataset.scst===S.st))});
+    else if(a==="sertype"){const m=scan.main;closeScanner();openSer(m,true)}
+    else if(a==="bar") setMode("bar");
+    else if(a==="torch"&&scan.track){scan.torch=!scan.torch;try{await scan.track.applyConstraints({advanced:[{torch:scan.torch}]})}catch(e){}}};
 }
 
 /* ================= SERVER (Google Apps Script) ================= */
@@ -1206,6 +1273,8 @@ function bindSheet(){
   el.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
   el.querySelectorAll("[data-addnr]").forEach(b=>b.onclick=()=>pickNr(b.dataset.addnr));
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pickNr(b.dataset.pick));
+  el.querySelectorAll("[data-serpick]").forEach(b=>b.onclick=()=>openCount(b.dataset.serpick,{fromScan:sheet.fromScan}));
+  const sq=$("#serq");if(sq){sq.oninput=()=>{sheet.q=sq.value;const pos=sq.selectionStart;renderSheet();const n=$("#serq");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};sq.onkeydown=e=>{if(e.key==="Enter") act("ser-ok")}}
   const aq=$("#aq");if(aq) aq.oninput=()=>{sheet.q=aq.value;const pos=aq.selectionStart;renderSheet();const n=$("#aq");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
 }
 function act(a){
@@ -1223,6 +1292,8 @@ function act(a){
     case "download": downloadText(fileName(),buildCSV()); break;
     case "share": shareCSV(); break;
     case "scan": closeSheet(); openScanner(); break;
+    case "ser-scan": {const m=sheet.main||sheet.nr;closeSheet();openScanner(m);break}
+    case "ser-ok": serManual(sheet.main,(($("#serq")||{}).value||"").trim(),sheet.fromScan); break;
     case "enter": openEntry(); break;
     case "back-nr": openEntry(); break;
     case "to-edit": openCount(sheet.nr,{edit:true,fromScan:sheet.fromScan}); break;
