@@ -295,7 +295,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v7 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v8 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -1071,6 +1071,8 @@ function adminCompute(){
     if(/ikke i register/.test(r.navn)||(d.artikler&&Object.keys(d.artikler).length&&!d.artikler[r.nr])) a.flags.add("ukjent");});
   const dis=d.discos||{};const hasDis=!!d.harDiscos;
   if(hasDis){Object.keys(dis).forEach(nr=>{if(!art[nr]&&((dis[nr].ny||0)+(dis[nr].brukt||0))>0) art[nr]={nr,navn:nameOfA(nr),q:Object.fromEntries(ST.map(s=>[s.kode,0])),per:{},flags:new Set(["ikketalt"])}})}
+  /* samme nummer både som hovednummer og som serienr-type (f.eks. 507927120 og 580100000/507927120) – kan være samme vare med gammel/ny etikett */
+  Object.keys(art).forEach(k=>{if(k.includes("/")){const v=k.split("/")[1];if(art[v]){art[k].flags.add("dobbelnr");art[v].flags.add("dobbelnr")}}});
   const list=Object.values(art).map(a=>{const tot=ST.reduce((x,s)=>x+(a.q[s.kode]||0),0);const sys=dis[a.nr]||null;
     const sysTot=sys?(sys.ny||0)+(sys.brukt||0):null;
     return Object.assign(a,{tot,sys,sysTot,diff:hasDis?tot-(sysTot||0):null,diffNy:hasDis?(a.q.ny||0)-((sys&&sys.ny)||0):null,diffBr:hasDis?(a.q.brukt||0)-((sys&&sys.brukt)||0):null})}).sort((x,y)=>x.nr.localeCompare(y.nr));
@@ -1078,7 +1080,7 @@ function adminCompute(){
   return {ST,rows,sectors,list,hasDis,tels,activeTels};
 }
 function fmtTime(iso){if(!iso) return "–";const d=new Date(iso);if(isNaN(d)) return esc(iso);const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())}.${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`}
-const FLAGS={dobbel:["bad","Talt av flere i samme sektor"],ikkeliste:["warn","Ikke på sektorliste"],ukjent:["warn","Ukjent i register"],ikketalt:["bad","Ikke talt – har beholdning i Discos"]};
+const FLAGS={dobbel:["bad","Talt av flere i samme sektor"],ikkeliste:["warn","Ikke på sektorliste"],ukjent:["warn","Ukjent i register"],ikketalt:["bad","Ikke talt – har beholdning i Discos"],dobbelnr:["warn","Samme nr. som hovednr og serienr – sjekk"]};
 function adminHTML(){
   if(!serverUrl()) return bar("Admin",{back:true})+`<div class="content"><div class="banner bad">Ingen server satt opp. Se Oppsett.</div></div>`;
   if(!S.adminPin) return bar("Telling 581 – Admin",{back:true,meta:"Łukasz"})+`<div class="content" style="max-width:420px">
