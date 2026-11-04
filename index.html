@@ -295,7 +295,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v8 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v9 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -378,6 +378,8 @@ function itemsOf(code){
 const cnt=(code,nr)=>(S.counts[code]||{})[nr];
 const sers=(code,nr)=>((S.serials[code]||{})[nr]||[]);
 const totalOf=c=>STATS().reduce((a,s)=>a+(c.q[s.kode]||0),0);
+/* felles liste: flere sektorer med nøyaktig samme artikkelliste (f.eks. små A1–A5) – lista er et utvalg, ikke en sjekkliste per sektor */
+function sharedGroup(code){const e=expected(code);if(!e.length) return null;const k=e.join(",");const g=CFG.sektorer.filter(s=>s.artikler.length===e.length&&s.artikler.join(",")===k).map(s=>s.kode);return g.length>1?g:null}
 function stats(code){const exp=expected(code);return {reg:Object.keys(S.counts[code]||{}).length,exp:exp.length,expDone:exp.filter(nr=>cnt(code,nr)).length}}
 function knownPool(code){return [...new Set([...itemsOf(code).map(i=>i.nr),...Object.keys(CFG.artikler||{}),...Object.keys(S.extraNames)])]}
 function findKnown(code,raw){const nr=normNr(raw);if(!nr) return null;const z=x=>x.replace(/^0+/,"");const pool=knownPool(code);
@@ -436,7 +438,7 @@ function startHTML(){
     return `<button class="tile ${d?"done":""}" data-sector="${esc(s.kode)}">
       <span class="nm">Sektor</span><span class="code">${esc(s.kode)}</span>
       <span class="cnt">${d?`<span class="pill ok">Ferdig</span> `:""}${st.reg} registrert</span>
-      ${st.exp?`<span class="mini" title="fra liste"><i style="width:${pct}%"></i></span>`:""}</button>`}).join("");
+      ${st.exp&&!sharedGroup(s.kode)?`<span class="mini" title="fra liste"><i style="width:${pct}%"></i></span>`:""}</button>`}).join("");
   return bar("Velg sektor",{meta:esc(new Date().toLocaleDateString("nb-NO",{weekday:"long",day:"numeric",month:"short"}))})+
   `<div class="content">${banners()}
      <label class="lbl" for="nm">Ditt navn</label>
@@ -455,13 +457,13 @@ function startHTML(){
 function sectorHTML(){
   const code=view.sector;const st=stats(code);const hasExp=st.exp>0;
   if(view.filter!=="mangler") view.filter="reg";
-  return bar(`${esc(code)} <span style="font-size:15px;font-weight:600;opacity:.8">· ${st.reg} reg.</span>`,{back:true,meta:`${esc(S.name||"Uten navn")}<br>${syncBadge()}`,progress:hasExp?Math.round(st.expDone/st.exp*100):null})+
+  return bar(`${esc(code)} <span style="font-size:15px;font-weight:600;opacity:.8">· ${st.reg} reg.</span>`,{back:true,meta:`${esc(S.name||"Uten navn")}<br>${syncBadge()}`,progress:hasExp&&!sharedGroup(code)?Math.round(st.expDone/st.exp*100):null})+
   `<div class="content">
     <div class="entry">
       <button class="btn navy big" data-act="enter"><span style="font-size:26px;line-height:1">123</span>Skriv artikkelnr</button>
       <button class="btn primary big" data-act="scan"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 8V4h4M21 4h4v4M25 20v4h-4M7 24H3v-4"/><path d="M8 9v10M11 9v10M14.5 9v10M18 9v10M20.5 9v10" stroke-width="1.8"/></svg> Skann etikett</button>
     </div>
-    ${hasExp?`<div class="tabs"><button class="${view.filter==="reg"?"on":""}" data-filter="reg">Registrert (${st.reg})</button><button class="${view.filter==="mangler"?"on":""}" data-filter="mangler">Fra liste – mangler (${st.exp-st.expDone})</button></div>`
+    ${hasExp?`<div class="tabs"><button class="${view.filter==="reg"?"on":""}" data-filter="reg">Registrert (${st.reg})</button><button class="${view.filter==="mangler"?"on":""}" data-filter="mangler">${sharedGroup(code)?"Felles liste":"Fra liste – mangler"} (${st.exp-st.expDone})</button></div>`
       :`<div class="sub">Registrert i sektoren (${st.reg})</div>`}
     ${st.reg||hasExp?`<div class="search small" style="margin-bottom:10px"><span>⌕</span><input id="q" class="field" inputmode="search" placeholder="Søk i listen" value="${esc(view.q)}" autocomplete="off"></div>`:""}
     <div class="list" id="list">${listHTML()}</div>
@@ -785,7 +787,7 @@ function unknownSheet(){
     <button class="btn ghost block" data-act="scan">Skann på nytt</button></div></div>`;
 }
 function finishSheet(){
-  const code=view.sector;const st=stats(code);const miss=st.exp-st.expDone;
+  const code=view.sector;const st=stats(code);const miss=sharedGroup(code)?0:st.exp-st.expDone;
   if(!miss) return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">Fullføre ${esc(code)}?</div></div>
     <p>${st.reg} artikler registrert i sektoren.</p><div class="stack"><button class="btn primary block" data-act="finish-ok">Ja, sektor ferdig</button><button class="btn ghost block" data-act="close">Avbryt</button></div></div>`;
   return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div class="na">${miss} artikler fra listen er ikke registrert</div></div>
@@ -1062,6 +1064,10 @@ function adminCompute(){
     const last=rs.map(r=>r.mot).sort().pop()||"";
     return {code,status,who:[...new Set(rs.map(r=>r.by).filter(Boolean))],reg:reg.size,exp:exp.length,expDone:exp.filter(nr=>reg.has(nr)).length,
       missing:exp.filter(nr=>!reg.has(nr)),last,active:last&&now-new Date(last).getTime()<15*60000}});
+  /* felles liste (samme liste i flere sektorer): "mangler" = ikke talt i NOEN av sektorene, vises én gang */
+  {const byKey={};sectors.forEach(x=>{const k=(expMap[x.code]||[]).join(",");if(k) (byKey[k]=byKey[k]||[]).push(x)});
+   Object.values(byKey).forEach(g=>{if(g.length<2) return;const regAll=new Set(rows.filter(r=>g.some(x=>x.code===r.sektor)).map(r=>r.nr));const lbl=g[0].code+" – "+g[g.length-1].code;
+     g.forEach((x,i)=>{x.shared=lbl;x.missing=i===0?(expMap[x.code]||[]).filter(nr=>!regAll.has(nr)):[]})})}
   const art={};
   rows.forEach(r=>{const a=art[r.nr]=art[r.nr]||{nr:r.nr,navn:nameOfA(r.nr),q:{},per:{},flags:new Set()};
     ST.forEach(s=>a.q[s.kode]=(a.q[s.kode]||0)+r.q[s.kode]);
@@ -1108,7 +1114,7 @@ function adminHTML(){
   else if(admin.tab==="flagg"){const L=flagged.filter(a=>match(a.nr,a.navn));
     tbl=`<table><tr><th>Art.nr</th><th>Navn</th><th>Flagg</th><th>Per sektor</th></tr>${L.map(a=>`<tr><td class="mono">${esc(a.nr)}</td><td>${esc(a.navn)}</td><td>${[...a.flags].map(f=>`<span class="flag ${FLAGS[f][0]}">${FLAGS[f][1]}</span>`).join("")}</td>
       <td style="font-size:12px">${Object.entries(a.per).map(([k,p])=>esc(k)+": "+ST.map(s=>p.q[s.kode]||0).join("/")+" ("+esc([...p.who].join(", "))+")").join("<br>")}</td></tr>`).join("")||`<tr><td colspan="4" class="hint">Ingen flagg.</td></tr>`}</table>`}
-  else if(admin.tab==="mangler"){const L=[];c.sectors.forEach(x=>x.missing.forEach(nr=>{const na=(admin.data.artikler||{})[nr]||nameOf(nr);if(match(nr,na)) L.push([x.code,nr,na])}));
+  else if(admin.tab==="mangler"){const L=[];c.sectors.forEach(x=>x.missing.forEach(nr=>{const na=(admin.data.artikler||{})[nr]||nameOf(nr);if(match(nr,na)) L.push([x.shared||x.code,nr,na])}));
     tbl=`<table><tr><th>Sektor</th><th>Art.nr</th><th>Navn</th></tr>${L.map(([k,nr,na])=>`<tr><td>${esc(k)}</td><td class="mono">${esc(nr)}</td><td>${esc(na)}</td></tr>`).join("")||`<tr><td colspan="3" class="hint">Alt fra listene er registrert.</td></tr>`}</table>`}
   else if(admin.tab==="siste"){const L=[...c.rows].sort((x,y)=>y.mot.localeCompare(x.mot)).filter(r=>match(r.nr,r.navn)).slice(0,60);
     tbl=`<table><tr><th>Mottatt</th><th>Sektor</th><th>Talt av</th><th>Art.nr</th><th>Navn</th>${ST.map(s=>`<th class="n">${esc(s.navn)}</th>`).join("")}<th>Utregning</th></tr>
@@ -1138,7 +1144,7 @@ function adminHTML(){
     </div>
     <div class="card"><h3>Sektorer</h3><table><tr><th>Sektor</th><th>Status</th><th>Talt av</th><th class="n">Registrert</th><th class="n">Fra liste</th><th class="n">Mangler</th><th>Siste aktivitet</th></tr>
       ${c.sectors.map(x=>`<tr><td><b>${esc(x.code)}</b></td><td><span class="flag st-${x.status}">${stLbl[x.status]}</span>${x.active?' <span class="flag info">aktiv nå</span>':""}</td><td>${esc(x.who.join(", ")||"–")}</td>
-        <td class="n">${fmt(x.reg)}</td><td class="n">${x.exp?`${x.expDone} / ${x.exp}`:"–"}</td><td class="n" style="color:${x.missing.length?"var(--warn)":"inherit"}">${x.exp?fmt(x.missing.length):"–"}</td><td>${fmtTime(x.last)}</td></tr>`).join("")}</table></div>
+        <td class="n">${fmt(x.reg)}</td><td class="n">${x.shared?`felles ${x.exp}`:x.exp?`${x.expDone} / ${x.exp}`:"–"}</td><td class="n" style="color:${x.missing.length?"var(--warn)":"inherit"}">${x.exp?fmt(x.missing.length):"–"}</td><td>${fmtTime(x.last)}</td></tr>`).join("")}</table></div>
     <div class="chips atabs" style="margin-bottom:8px">${tabs.map(([k,t])=>`<button class="chip ${admin.tab===k?"on":""}" data-atab="${k}">${t}</button>`).join("")}</div>
     <div class="adm-tools"><div class="search small"><span>⌕</span><input id="aq2" class="field" placeholder="Søk artikkelnr eller navn" value="${esc(admin.q)}" autocomplete="off"></div>
       ${!c.hasDis?`<span class="hint" style="margin:0">Tips: lim inn beholdning fra Discos i fanen <b>Discos</b> (artikkelnr, Ny, Brukt) for å se avvik.</span>`:""}</div>
@@ -1154,7 +1160,7 @@ async function adminExcel(){
   const sumRows=c.list.filter(a=>a.tot>0||a.flags.size).map(a=>[a.nr,a.navn,...ST.map(s=>a.q[s.kode]||0),a.tot,...(c.hasDis?[(a.sys&&a.sys.ny)||0,(a.sys&&a.sys.brukt)||0,a.diffNy,a.diffBr]:[]),...secs.flatMap(k=>ST.map(s=>a.per[k]?(a.per[k].q[s.kode]||0):"")),[...a.flags].map(f=>FLAGS[f][1]).join(", ")]);
   const secHead=["Sektor","Status","Talt av","Registrert","Fra liste registrert","På liste","Mangler","Siste aktivitet"];
   const secRows=c.sectors.map(x=>[x.code,{ferdig:"Ferdig",pagar:"Pågår",ikke:"Ikke startet"}[x.status],x.who.join(", "),x.reg,x.expDone,x.exp,x.missing.length,fmtTime(x.last)]);
-  const misRows=[];c.sectors.forEach(x=>x.missing.forEach(nr=>misRows.push([x.code,nr,(admin.data.artikler||{})[nr]||""])));
+  const misRows=[];c.sectors.forEach(x=>x.missing.forEach(nr=>misRows.push([x.shared||x.code,nr,(admin.data.artikler||{})[nr]||""])));
   const lineHead=["Mottatt","Telefon","Talt av","Sektor","Artikkelnr","Navn",...ST.map(s=>s.navn),...ST.map(s=>"Utregning "+s.navn)];
   const lineRows=c.rows.map(r=>[fmtTime(r.mot),r.tel,r.by,r.sektor,r.nr,r.navn,...ST.map(s=>r.q[s.kode]),...ST.map(s=>r.e[s.kode])]);
   const base=`Telling_581_reservedeler_ADMIN_${nowStr().slice(0,16).replace(/[ :]/g,"-")}`;
