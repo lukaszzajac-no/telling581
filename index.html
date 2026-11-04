@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -290,7 +295,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v5 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v6 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -347,6 +352,7 @@ fixSt();
 function save(){if(!lsSet(KEY,JSON.stringify(S))) toast("ADVARSEL: telling ble ikke lagret!")}
 
 let view={screen:"start",sector:null,filter:"alle",q:""};
+let installEvt=null;
 let sheet={type:null};
 let merged=null, mergeTelling=null;
 
@@ -438,7 +444,7 @@ function startHTML(){
      ${tiles?`<div class="tiles">${tiles}</div>`:`<div class="empty-state">${serverUrl()?"Ingen sektorer ennå. Skriv koden for å hente listene.":"Ingen sektorer satt opp. Se Oppsett."}</div>`}
      <p class="hint">Velg sektoren du teller. Alt lagres i telefonen etter hver registrering${serverUrl()?" og sendes til server så snart det er nett":" og fungerer uten nett"}.</p>
      <div class="chips" style="justify-content:center;margin-top:14px">
-       <button class="link" data-act="merge">PC: slå sammen filer</button><button class="link" data-act="oppsett">Oppsett</button>${serverUrl()?`<button class="link" data-act="admin">Admin</button>`:""}</div>
+       ${installEvt?`<button class="link" data-act="install" style="font-weight:800">Installer som app</button>`:""}<button class="link" data-act="merge">PC: slå sammen filer</button><button class="link" data-act="oppsett">Oppsett</button>${serverUrl()?`<button class="link" data-act="admin">Admin</button>`:""}</div>
      <div class="ver">Dataversjon: ${esc(CFG.versjon||"–")}</div>
    </div>
    <div class="foot"><button class="btn ${serverUrl()?"ghost":"navy"} grow" data-act="export">${serverUrl()?"Reservekopi / eksporter fil":"Send / eksporter telling"}</button></div>`;
@@ -1191,6 +1197,7 @@ function bindSheet(){
 function act(a){
   switch(a){
     case "home": go("start"); break;
+    case "install": if(installEvt){installEvt.prompt();installEvt.userChoice.finally(()=>{installEvt=null;render()})} break;
     case "export": go("export"); break;
     case "merge": go("merge"); break;
     case "oppsett": go("oppsett"); break;
@@ -1246,6 +1253,18 @@ window.addEventListener("beforeunload",e=>{save();if(Object.keys(S.dirty||{}).le
 render();
 /* ================= TILBAKE-KNAPPEN: blir i appen ================= */
 /* Tilbake lukker skanner/vindu eller går til startsiden – den lukker ikke appen. */
+/* ================= SOM APP: installering, fullskjerm, uten nett ================= */
+const IS_APP=()=>{try{return matchMedia("(display-mode: fullscreen)").matches||matchMedia("(display-mode: standalone)").matches}catch(e){return false}};
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;if(view.screen==="start"&&!sheet.type) render()});
+window.addEventListener("appinstalled",()=>{installEvt=null;toast("Appen er installert – åpne den fra startskjermen")});
+if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+/* fullskjerm i vanlig Chrome på telefon: ved første trykk (nettleseren tillater det bare etter et trykk) */
+document.addEventListener("pointerdown",()=>{
+  if(IS_APP()||document.fullscreenElement||!document.documentElement.requestFullscreen) return;
+  if(!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) return;
+  if($("#scanner").classList.contains("open")) return;
+  document.documentElement.requestFullscreen({navigationUI:"hide"}).catch(()=>{});
+},{capture:true,passive:true});
 let guardArmed=false;
 function backGuard(){try{history.pushState({telling:1},"",location.pathname+location.search);guardArmed=true}catch(e){}}
 try{history.replaceState({telling:0},"",location.pathname+location.search)}catch(e){}

@@ -1,0 +1,17 @@
+{
+  "name": "Telling 581 – reservedeler",
+  "short_name": "Telling 581",
+  "description": "Telling av reservedeler, Doka lager 581 Oslo",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#F2F3F5",
+  "theme_color": "#004588",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
