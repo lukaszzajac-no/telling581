@@ -295,7 +295,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v6 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v7 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -363,7 +363,10 @@ const fmt=n=>Number(n||0).toLocaleString("nb-NO");
 const sidx=k=>Math.max(0,STATS().findIndex(s=>s.kode===k));
 const stName=k=>(STATS().find(s=>s.kode===k)||{navn:k}).navn;
 const sec=code=>CFG.sektorer.find(s=>s.kode===code);
-const nameOf=nr=>(CFG.artikler&&CFG.artikler[nr])||S.extraNames[nr]||"(ukjent artikkel)";
+const nameOf=nr=>(CFG.artikler&&CFG.artikler[nr])||S.extraNames[nr]||(String(nr).includes("/")?variantName(nr):"(ukjent artikkel)");
+/* Hovednummer med serienr-type (f.eks. 580100000 + QR 507927130): telles som egen linje "hovednr/serienr" med antall Ny/Brukt */
+function variantName(nr){const [a,v]=String(nr).split("/");const n=(CFG.artikler||{})[v];return (n||("Serienr "+v))+" · "+a}
+const isVariantSer=v=>/^\d{5,12}$/.test(String(v||"").trim());
 const inRegister=nr=>!!(CFG.artikler&&CFG.artikler[nr]);
 function normNr(x){x=String(x==null?"":x).trim().replace(/\.0+$/,"");if(/^\d{5}$/.test(x)) x="0"+x;return x}
 function expected(code){const s=sec(code);return s?s.artikler:[]}
@@ -809,7 +812,7 @@ function openCount(nr,opts){
   let st=S.st;if(c&&opts.edit){const nz=ST.filter(s=>c.q[s.kode]);if(nz.length===1) st=nz[0].kode}
   openSheet({type:"count",step:"qty",nr,edit:!!opts.edit,mode:"antall",vals,wnote:{},st,fromScan:!!opts.fromScan,w:{v:["20","",""],active:1}});
 }
-function pickNr(nr){openCount(nr,{})}
+function pickNr(nr){if(!String(nr).includes("/")&&isSerialMain(nr)){openSheet({type:"count",step:"nr",typed:nr});toast("Velg serienr-type i listen – eller skann etiketten");return}openCount(nr,{})}
 function setSt(st){sheet.st=st;S.st=st;save();renderSheet()}
 function commit(){
   const ST=STATS();
@@ -924,14 +927,17 @@ function handleCodes(codes){
   scan.prev="";scan.n=0;onScan(art,ser);
 }
 function hasSerials(nr){return Object.values(S.serials||{}).some(m=>m&&m[nr]&&m[nr].length)}
+function isSerialMain(nr){const p=nr+"/";return hasSerials(nr)||knownPool(view.sector).some(x=>x.startsWith(p))||Object.values(S.counts||{}).some(m=>Object.keys(m||{}).some(x=>x.startsWith(p)))}
 function flash(){const el=$("#scanner");el.classList.add("hit");setTimeout(()=>el.classList.remove("hit"),350);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
 function onScan(rawArt,ser){
   if(ser&&!rawArt){setStat(`Serienr ${ser} – mangler strekkode`,true,"Hold hele etiketten i bildet (strekkode + QR).");return}
   flash();
+  /* QR med bare tall = serienr-TYPE under hovednummeret (mange stk, Ny/Brukt) – telles med antall */
+  if(ser&&isVariantSer(ser)){const key=normNr(rawArt)+"/"+String(ser).trim();closeScanner();openCount(key,{fromScan:true});return}
   const art=findKnown(view.sector,rawArt);
   if(!art){closeScanner();openSheet({type:"unknown",nr:normNr(rawArt),ser,fromScan:true});return}
   if(ser){registerSerial(art,ser);return}
-  if(hasSerials(art)){scan.warn=rawArt;setStat(nameOf(art)+" har serienummer",true,"Hold hele etiketten i bildet – strekkode + QR-kode.");return}
+  if(isSerialMain(art)){scan.warn=rawArt;setStat(nameOf(art)+" har serienummer",true,"Hold hele etiketten i bildet – strekkode + QR-kode.");return}
   closeScanner();openCount(art,{fromScan:true});
 }
 function registerSerial(art,ser){
