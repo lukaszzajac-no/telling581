@@ -258,9 +258,9 @@ tr.conflict td{background:var(--bad-soft)}
 .sc-top .back{background:rgba(255,255,255,.16);border-color:transparent;color:#fff}
 .sc-top .sp{flex:1}
 .sc-frame{position:relative;z-index:1;flex:1;display:grid;place-items:center;pointer-events:none}
-.sc-frame i{width:78%;height:150px;border-radius:6px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);border:3px solid var(--yellow);position:relative}
-.sc-frame i::after{content:"";position:absolute;left:8%;right:8%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30;animation:scanline 1.6s ease-in-out infinite}
-@keyframes scanline{0%,100%{transform:translateY(-55px)}50%{transform:translateY(55px)}}
+.sc-frame i{width:94%;max-width:540px;aspect-ratio:3/2;max-height:56vh;border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,.35);border:4px solid var(--yellow);position:relative}
+.sc-frame i::after{content:"";position:absolute;left:5%;right:5%;top:10%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30;animation:scanline 2s ease-in-out infinite}
+@keyframes scanline{0%,100%{top:10%}50%{top:90%}}
 .scanner.hit .sc-frame i{border-color:#34c759}
 .sc-bottom{position:relative;z-index:2;background:#fff;color:var(--ink);border-radius:10px 10px 0 0;border-top:4px solid var(--yellow);padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
 .sc-stat{font-weight:700;font-size:16px;color:var(--navy);min-height:24px}
@@ -290,7 +290,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v4 (lister fra Google Sheet)",
+ "versjon": "2026-11-04 v5 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
