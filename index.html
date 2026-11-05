@@ -161,7 +161,8 @@ label.lbl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin
 .key.sm{font-size:15px}
 .skip{display:block;margin:10px auto 0;color:var(--muted);font-size:14px;text-decoration:underline}
 .serials{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.serials span{background:var(--bg);border-radius:2px;padding:5px 9px;font-size:13px;font-weight:700}
+.serials span{background:var(--bg);border-radius:2px;padding:5px 4px 5px 9px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.serials .xsn{width:28px;height:28px;border-radius:2px;color:var(--bad);font-size:14px;font-weight:700;display:grid;place-items:center}
 
 /* --- ekran sektora --- */
 .entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -296,7 +297,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-04 v10 (lister fra Google Sheet)",
+ "versjon": "2026-11-05 v11 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -341,11 +342,13 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 let CFG=EMBEDDED, LOCALCFG=false;
 try{const c=JSON.parse(lsGet(CFGKEY));if(c&&Array.isArray(c.sektorer)){CFG=c;LOCALCFG=true}}catch(e){}
 
-function blankState(keep){return {v:1,name:keep?keep.name:"",device:keep?keep.device:"",pin:keep?keep.pin:"",st:null,seq:keep?keep.seq:0,counts:{},extraNames:{},done:{},serials:{},dirty:{}}}
+function blankState(keep){return {v:1,name:keep?keep.name:"",device:keep?keep.device:"",pin:keep?keep.pin:"",st:null,seq:keep?keep.seq:0,counts:{},extraNames:{},done:{},serials:{},dirty:{},del:{}}}
+/* admin = admin-kode skrevet inn OG bekreftet av serveren (ikke bare skrevet inn uten nett) */
+const isAdmin=()=>!!(S.adminPin&&S.adminOk);
 let S=null;try{S=JSON.parse(lsGet(KEY))}catch(e){}
 if(!S||S.v!==1) S=blankState();
 if(!S.device){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";S.device="T-"+Array.from({length:5},()=>a[Math.floor(Math.random()*a.length)]).join("")}
-S.dirty=S.dirty||{};
+S.dirty=S.dirty||{};S.del=S.del||{};
 {const m=location.hash.match(/pin=([^&]+)/);if(m){S.pin=decodeURIComponent(m[1]);try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}}}
 const STATS=()=>(CFG.statuser&&CFG.statuser.length)?CFG.statuser:[{kode:"ny",navn:"Ny",merke:"N"},{kode:"brukt",navn:"Brukt",merke:"U"}];
 function fixSt(){if(!S.st||!STATS().some(x=>x.kode===S.st)) S.st=STATS()[0].kode}
@@ -453,7 +456,7 @@ function startHTML(){
      ${tiles?`<div class="tiles">${tiles}</div>`:`<div class="empty-state">${serverUrl()?"Ingen sektorer ennå. Skriv koden for å hente listene.":"Ingen sektorer satt opp. Se Oppsett."}</div>`}
      <p class="hint">Velg sektoren du teller. Alt lagres i telefonen etter hver registrering${serverUrl()?" og sendes til server så snart det er nett":" og fungerer uten nett"}.</p>
      <div class="chips" style="justify-content:center;margin-top:14px">
-       ${installEvt?`<button class="link" data-act="install" style="font-weight:800">Installer som app</button>`:""}<button class="link" data-act="merge">PC: slå sammen filer</button><button class="link" data-act="oppsett">Oppsett</button>${serverUrl()?`<button class="link" data-act="admin">Admin</button>`:""}</div>
+       ${installEvt?`<button class="link" data-act="install" style="font-weight:800">Installer som app</button>`:""}${serverUrl()&&!isAdmin()?"":`<button class="link" data-act="merge">PC: slå sammen filer</button>`}${!serverUrl()||isAdmin()?`<button class="link" data-act="oppsett">Oppsett</button>`:""}${serverUrl()?`<button class="link" data-act="admin">Admin</button>`:""}</div>
      <div class="ver">Dataversjon: ${esc(CFG.versjon||"–")}</div>
    </div>
    <div class="foot"><button class="btn ${serverUrl()?"ghost":"navy"} grow" data-act="export">${serverUrl()?"Reservekopi / eksporter fil":"Send / eksporter telling"}</button></div>`;
@@ -510,7 +513,7 @@ function exportHTML(){
     <div class="stack">
       ${canShare?`<button class="btn primary block" data-act="share" ${rows?"":"disabled"}>Del fil (Teams / e-post)</button>`:""}
       <button class="btn ${canShare?"ghost":"primary"} block" data-act="download" ${rows?"":"disabled"}>Last ned fil (CSV)</button>
-      <button class="link" data-act="wipe" style="margin-top:14px;color:var(--bad)">Slett alle tellinger på denne telefonen…</button>
+      ${!serverUrl()||isAdmin()?`<button class="link" data-act="wipe" style="margin-top:14px;color:var(--bad)">Slett alle tellinger på denne telefonen…</button>`:`<p class="hint" style="margin-top:14px">Sletting av tellinger på telefonen gjøres av Łukasz (admin).</p>`}
     </div>
   </div>`;
 }
@@ -740,9 +743,10 @@ function countSheet(){
   const cols=`grid-template-columns:repeat(${ST.length},1fr)`;
   if(sl.length){
     return head(nr,nameOf(nr))+`<div class="nb" style="${cols};margin-top:12px">${ST.map((s,i)=>`<div class="nbx s${i}"><span class="lab">${esc(s.navn.toUpperCase())} <i>${esc(s.merke||"")}</i></span><span class="ex">serienr</span><b>${sl.filter(x=>x.st===s.kode).length}</b></div>`).join("")}</div>
-    <div class="serials">${sl.map(x=>`<span class="mono c${sidx(x.st)}">${esc(x.sn)} · ${esc((STATS()[sidx(x.st)]||{}).merke||x.st)}</span>`).join("")}</div>
-    <p class="hint">Antall = antall skannede serienumre. Skann etiketten (strekkode + QR) på hver enhet.</p>
-    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="ser-scan">Skann flere</button><button class="btn ghost block" data-act="close">Ferdig</button></div>`;
+    <div class="serials">${sl.map(x=>`<span class="mono c${sidx(x.st)}">${esc(x.sn)} · ${esc((STATS()[sidx(x.st)]||{}).merke||x.st)} <button class="xsn" data-delsn="${esc(x.sn)}" aria-label="Fjern ${esc(x.sn)}">✕</button></span>`).join("")}</div>
+    <p class="hint">Antall = antall skannede serienumre. Skann etiketten (strekkode + QR) på hver enhet. ✕ fjerner et feilskannet serienummer.</p>
+    <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="ser-scan">Skann flere</button><button class="btn ghost block" data-act="close">Ferdig</button></div>
+    <div style="text-align:center"><button class="backnr" data-act="del-reg" style="color:var(--bad)">Fjern hele registreringen fra ${esc(view.sector)}</button></div>`;
   }
   const old=cnt(view.sector,nr);
   const note=old&&!sheet.edit?`<div class="addnote">Allerede registrert her: <b>${ST.map(s=>esc(s.navn)+" "+fmt(old.q[s.kode]||0)).join(" · ")}</b>. Det du skriver nå <b>legges til</b>. <button class="link" data-act="to-edit" style="padding:0">Endre i stedet</button></div>`
@@ -771,7 +775,8 @@ function countSheet(){
   }
   return head(nr,nameOf(nr))+note+`<div class="tabs"><button class="${vk?"":"on"}" data-mode="antall">Antall</button><button class="${vk?"on":""}" data-mode="vekt">⚖ Vekt</button></div>
     ${mid}${keys}${sheet.fromScan?`<p class="hint" style="text-align:center">OK lagrer og åpner kameraet igjen</p>`:""}
-    ${!sheet.edit&&!sheet.fromScan?`<div style="text-align:center"><button class="backnr" data-act="back-nr">‹ Annet artikkelnummer</button></div>`:""}`;
+    ${!sheet.edit&&!sheet.fromScan?`<div style="text-align:center"><button class="backnr" data-act="back-nr">‹ Annet artikkelnummer</button></div>`:""}
+    ${sheet.edit?`<div style="text-align:center"><button class="backnr" data-act="del-reg" style="color:var(--bad)">Fjern registreringen fra ${esc(view.sector)}</button></div>`:""}`;
 }
 function weightResult(){const v=sheet.w.v.map(x=>parseFloat(x));if(!(v[0]>0&&v[1]>0&&v[2]>=0)||!sheet.w.v[2]) return null;return Math.round(v[2]/(v[1]/v[0]))}
 function addSheet(){
@@ -783,9 +788,12 @@ function addSheet(){
     ${qq&&!hits.length?`<p class="hint">Ingen treff i artikkelregisteret.</p>`:""}`;
 }
 function unknownSheet(){
+  /* står nummeret i listen som serienr-type (580100000/<nr>)? Etiketten har bare nummeret → registreres som det, men navnet foreslås */
+  const alt=Object.keys(CFG.artikler||{}).find(k=>k.endsWith("/"+sheet.nr));const na=alt?String(CFG.artikler[alt]||""):"";
   return `<div class="grab"></div><div class="dlg"><div class="sh-head"><div style="flex:1"><div class="nr mono" style="font-size:20px;color:var(--ink)">${esc(sheet.nr)}</div><div class="na" style="color:var(--bad)">Finnes ikke i artikkelregisteret</div></div></div>
     <p>Sjekk nummeret på etiketten. Stemmer det, skriv hva slags del det er og registrer den likevel.</p>
-    <input id="una" class="field" placeholder="Beskrivelse (f.eks. bolt M20 med mutter)">
+    ${alt?`<p class="hint" style="margin-top:0">Nummeret står i listen som serienr-type under ${esc(alt.split("/")[0])}. Har etiketten bare ${esc(sheet.nr)}, registreres den som ${esc(sheet.nr)} – navnet er fylt inn.</p>`:""}
+    <input id="una" class="field" placeholder="Beskrivelse (f.eks. bolt M20 med mutter)" value="${esc(na)}">
     <div class="stack" style="margin-top:10px"><button class="btn primary block" data-act="unk-add">Registrer likevel</button>
     <button class="btn ghost block" data-act="unk-retype">Skriv nummeret på nytt</button>
     <button class="btn ghost block" data-act="scan">Skann på nytt</button></div></div>`;
@@ -822,8 +830,13 @@ function confirmSheet(){
 
 /* ================= REGISTRERING ================= */
 function setCount(nr,qv,ev){const c=view.sector;S.seq=(S.seq||0)+1;(S.counts[c]=S.counts[c]||{})[nr]={q:qv,e:ev,by:S.name||"",ts:nowStr(),n:S.seq};
-  S.dirty[c+"|"+nr]=S.seq;if(S.done[c]){delete S.done[c];markSectorDirty(c)}save();scheduleSync()}
+  S.dirty[c+"|"+nr]=S.seq;delete S.del[c+"|"+nr];if(S.done[c]){delete S.done[c];markSectorDirty(c)}save();scheduleSync()}
 function markSectorDirty(c){S.seq=(S.seq||0)+1;S.dirty[c+"|#STATUS"]=S.seq}
+/* fjerne en feilregistrering: bort fra telefonen, og raden slettes i Google Sheet (type "delete" i køen) */
+function removeCount(nr){const c=view.sector;if(S.counts[c]) delete S.counts[c][nr];if(S.serials[c]) delete S.serials[c][nr];S.seq=(S.seq||0)+1;const k=c+"|"+nr;S.del[k]=S.seq;S.dirty[k]=S.seq;if(S.done[c]){delete S.done[c];markSectorDirty(c)}save();scheduleSync()}
+function removeSerial(nr,sn){const c=view.sector;const arr=sers(c,nr).filter(x=>x.sn!==sn);
+  if(!arr.length){removeCount(nr);closeSheet();refreshList();toast(`${sn} fjernet – ingen igjen på ${nr}`);return}
+  S.serials[c][nr]=arr;const qv={},ev={};STATS().forEach(s=>{qv[s.kode]=arr.filter(x=>x.st===s.kode).length;ev[s.kode]=qv[s.kode]?"serienr":""});setCount(nr,qv,ev);refreshList();openCount(nr,{edit:true});toast(`${sn} fjernet`)}
 
 function openEntry(typed){openSheet({type:"count",step:"nr",typed:typed||""})}
 /* opts.edit = endre (erstatte) · ellers legges nye tall til det som er registrert */
@@ -858,7 +871,9 @@ function key(k){
     if(k==="scan"){closeSheet();openScanner();return}
     if(k==="name"){openSheet({type:"add",q:""});setTimeout(()=>{const x=$("#aq");if(x) x.focus()},230);return}
     if(k==="ok"){const ex=findKnown(view.sector,t);const c=candidates(view.sector,t).filter(x=>x!==ex);
-      if(ex) pickNr(ex); else if(c.length===1) pickNr(c[0]); else if(t.length>=4&&!c.length) openSheet({type:"unknown",nr:normNr(t)}); else toast(t?"Velg artikkel i listen":"Skriv artikkelnummeret");return}
+      /* skrevet nummer som bare finnes som serienr-type (580100000/<nr>): ikke velg automatisk – etiketten kan ha bare nummeret. Typen står i listen og kan velges. */
+      const onlyVar=c.length>0&&c.every(x=>x.includes("/")&&x.split("/")[1]===normNr(t));
+      if(ex) pickNr(ex); else if(c.length===1&&!onlyVar) pickNr(c[0]); else if(t.length>=4&&(!c.length||onlyVar)) openSheet({type:"unknown",nr:normNr(t)}); else toast(t?"Velg artikkel i listen":"Skriv artikkelnummeret");return}
     if(k==="del") t=t.slice(0,-1); else if(k==="clr") t=""; else if(/^\d+$/.test(k)) t=(t+k).slice(0,12);
     sheet.typed=t;renderSheet();return;
   }
@@ -912,6 +927,7 @@ function setMode(m,main,keep){
     :`<button class="btn ghost block" data-sc="type">Skriv nummer i stedet</button>`;
   if(!keep){if(qr) setStat(main+" – skann QR-koden",false,nameOf(main)+". Hold QR-koden i rammen – eller skriv serienummeret.");
     else setStat("Sikt mot strekkoden",false,"Bare strekkoden leses. Er det et hovednummer med serienr (f.eks. 580100000), ber appen om QR-koden etterpå.")}
+  if(qr&&scan.stream&&!scan.detQr) setStat("QR-leser mangler på denne telefonen",true,"Trykk «Skriv serienummer i stedet».");
   const d=$("#scdemo");if(d&&d.style.display!=="none") showDemo();
 }
 function showDemo(){
@@ -936,13 +952,14 @@ async function openScanner(main){
   const el=$("#scanner");el.innerHTML=scannerHTML();el.classList.add("open");el.classList.remove("hit");
   scan.on=true;scan.paused=false;bindScanner();setMode(main?"qr":"bar",main);
   if(!("BarcodeDetector" in window)||!navigator.mediaDevices||!window.isSecureContext||location.protocol==="content:"||location.protocol==="file:"){
-    setStat("Kamera ikke tilgjengelig",true,(!window.isSecureContext||location.protocol!=="https:")?"Appen er åpnet som fil. Kameraet virker bare når appen åpnes fra en https-adresse – skriv nummeret i stedet.":"Denne nettleseren har ikke strekkodeleser – bruk Chrome på Android.");showDemo();return}
+    setStat("Kamera ikke tilgjengelig",true,(!window.isSecureContext||location.protocol!=="https:")?"Appen er åpnet som fil. Kameraet virker bare når appen åpnes fra en https-adresse – skriv nummeret i stedet.":"Denne nettleseren har ikke strekkodeleser – bruk Chrome på Android.");if(CFG.testdata) showDemo();return}
   try{
     const fm=await BarcodeDetector.getSupportedFormats();
     const bf=["code_39","code_128","ean_13"].filter(f=>fm.includes(f));
+    if(!bf.length||(main&&!fm.includes("qr_code"))){setStat("Telefonen har ikke strekkodeleser",true,"Chrome på denne telefonen mangler Googles strekkodeleser. Skriv nummeret i stedet, eller bruk en annen telefon.");if(CFG.testdata) showDemo();return}
     scan.detBar=bf.length?new BarcodeDetector({formats:bf}):null;
     scan.detQr=fm.includes("qr_code")?new BarcodeDetector({formats:["qr_code"]}):null;
-    scan.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+    scan.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
     if(!scan.on){stopStream();return}
     const v=$("#scanvid");v.srcObject=scan.stream;await v.play();
     scan.track=scan.stream.getVideoTracks()[0];
@@ -951,7 +968,7 @@ async function openScanner(main){
   }catch(e){
     if(location.protocol!=="https:") setStat("Kamera virker ikke når appen er åpnet som fil",true,"Åpnet fra "+location.protocol+"//. Kameraet krever at appen åpnes fra en https-adresse. Skriv nummeret i stedet.");
     else setStat("Får ikke tilgang til kameraet",true,"Tillat kamera for siden i Chrome (lås-ikonet i adresselinjen), eller skriv nummeret.");
-    showDemo()}
+    if(CFG.testdata) showDemo()}
 }
 function stopStream(){if(scan.stream){scan.stream.getTracks().forEach(t=>t.stop());scan.stream=null}}
 function closeScanner(){scan.on=false;clearTimeout(scan.timer);stopStream();const el=$("#scanner");if(el){el.classList.remove("open","qrmode");el.innerHTML=""}}
@@ -1044,6 +1061,7 @@ function scheduleSync(ms){if(!serverUrl()) return;clearTimeout(syncTimer);syncTi
 function buildRecord(key){
   const i=key.lastIndexOf("|");const code=key.slice(0,i),nr=key.slice(i+1);const v=S.dirty[key];
   if(nr==="#STATUS") return {type:"sector",key,v,sektor:code,done:!!S.done[code],by:S.name};
+  if(S.del[key]&&!cnt(code,nr)) return {type:"delete",key,v,sektor:code,nr};
   const c=cnt(code,nr);if(!c) return null;const sl=sers(code,nr);const sn={};
   STATS().forEach(s=>{sn[s.kode]=sl.filter(x=>x.st===s.kode).map(x=>x.sn)});
   return {key,v,sektor:code,nr,navn:nameOf(nr),q:c.q,e:c.e,sn,by:c.by,ts:c.ts,extra:expected(code).length>0&&!expected(code).includes(nr)};
@@ -1060,7 +1078,7 @@ async function sync(){
     const r=await fetch(url,{method:"POST",body:JSON.stringify({pin:S.pin,device:S.device,navn:S.name,statuser:STATS().map(s=>({kode:s.kode,navn:s.navn})),records:recs})});
     const j=await r.json();
     if(!j.ok){syncState={status:j.error==="pin"?"pin":"err"};if(j.error==="pin"&&view.screen==="start"&&!sheet.type) render()}
-    else{(j.acked||[]).forEach(([k,v])=>{if(S.dirty[k]===v) delete S.dirty[k]});S.lastSync=nowStr();save();
+    else{(j.acked||[]).forEach(([k,v])=>{if(S.dirty[k]===v) delete S.dirty[k];if(S.del[k]===v) delete S.del[k]});S.lastSync=nowStr();save();
       syncState={status:"ok"};again=pendingN()>0&&keys.length>150}
   }catch(e){syncState={status:"offline"}}
   syncing=false;updateSyncBadge();
@@ -1097,7 +1115,10 @@ async function saveServer(){
   render();
 }
 window.addEventListener("online",()=>scheduleSync(200));
-document.addEventListener("visibilitychange",()=>{if(!document.hidden) scheduleSync(300); else save()});
+/* lister fra arket hentes på nytt når appen kommer tilbake på skjermen (høyst hvert 5. minutt) */
+let cfgAt=0;
+async function refreshCfg(){if(!serverUrl()||!S.pin||Date.now()-cfgAt<5*60000||sheet.type||scan.on) return;cfgAt=Date.now();const ok=await fetchRemoteCfg(false);if(ok&&view.screen==="sector"&&!sheet.type&&!scan.on) refreshList()}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){scheduleSync(300);refreshCfg()} else save()});
 
 /* ================= ADMIN-PANEL ================= */
 const admin={data:null,loading:false,err:"",tab:"sum",q:"",timer:null,at:null};
@@ -1106,8 +1127,8 @@ async function adminLoad(){
   admin.loading=true;if(view.screen==="admin"&&!admin.data) render();
   try{
     const r=await fetch(url+(url.includes("?")?"&":"?")+"action=data&pin="+encodeURIComponent(S.adminPin));const j=await r.json();
-    if(!j.ok){admin.err=j.error==="pin"?"Feil admin-kode":"Feil fra server: "+j.error;if(j.error==="pin"){S.adminPin="";save()}}
-    else{admin.data=j;admin.err="";admin.at=new Date()}
+    if(!j.ok){admin.err=j.error==="pin"?"Feil admin-kode":"Feil fra server: "+j.error;if(j.error==="pin"){S.adminPin="";S.adminOk=false;save()}}
+    else{admin.data=j;admin.err="";admin.at=new Date();if(!S.adminOk){S.adminOk=true;save()}}
   }catch(e){admin.err="Ingen forbindelse med serveren"}
   admin.loading=false;
   if(view.screen==="admin"&&!sheet.type){const y=window.scrollY;const qf=document.activeElement&&document.activeElement.id==="aq2";render();window.scrollTo(0,y);if(qf){const f=$("#aq2");if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}}
@@ -1195,6 +1216,7 @@ function adminHTML(){
       <div class="sb-group">HANDLINGER</div>
       <button class="sb-item" data-act="admin-refresh"><span>${admin.loading?"Henter…":"Oppdater nå"}</span></button>
       <button class="sb-item" data-act="admin-xlsx"><span>Last ned Excel</span></button>
+      <button class="sb-item" data-act="oppsett"><span>Oppsett (lister, server, sletting)</span></button>
       <button class="sb-item" data-act="home"><span>‹ Tilbake til start</span></button></nav>
     <div class="sb-foot"><div class="sb-user"><span class="av">ŁZ</span><span><b>Łukasz Zając</b><small>admin · lager ${esc(CFG.lager||"")}</small></span></div>
       <div class="credit"><small>UTVIKLET AV</small><b>Łukasz Zając</b></div></div></aside>`;
@@ -1216,7 +1238,7 @@ function adminHTML(){
     <div class="adm-tools"><div class="search small"><span>⌕</span><input id="aq2" class="field" placeholder="Søk artikkelnr eller navn" value="${esc(admin.q)}" autocomplete="off"></div>
       ${!c.hasDis?`<span class="hint" style="margin:0">Tips: lim inn beholdning fra Discos i fanen <b>Discos</b> (artikkelnr, Ny, Brukt) for å se avvik.</span>`:""}</div>
     <div class="card" id="admtbl">${tbl}</div>
-    <div class="chips" style="justify-content:center"><button class="link" data-act="admin-logout">Logg ut av admin på denne PC-en</button></div>
+    <div class="chips" style="justify-content:center"><button class="link" data-act="oppsett">Oppsett</button><button class="link" data-act="admin-logout">Logg ut av admin på denne PC-en</button></div>
   </div>
   <div class="foot"><button class="btn ghost" data-act="admin-refresh">${admin.loading?"Henter…":"Oppdater nå"}</button><button class="btn primary grow" data-act="admin-xlsx">Last ned Excel</button></div></div></div>`;
 }
@@ -1274,6 +1296,7 @@ function bindSheet(){
   el.querySelectorAll("[data-addnr]").forEach(b=>b.onclick=()=>pickNr(b.dataset.addnr));
   el.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pickNr(b.dataset.pick));
   el.querySelectorAll("[data-serpick]").forEach(b=>b.onclick=()=>openCount(b.dataset.serpick,{fromScan:sheet.fromScan}));
+  el.querySelectorAll("[data-delsn]").forEach(b=>b.onclick=()=>{const nr=sheet.nr,sn=b.dataset.delsn;openSheet({type:"confirm",danger:true,title:`Fjerne ${sn}?`,text:`Serienummeret fjernes fra ${esc(nameOf(nr))} i ${esc(view.sector)} – også i Google Sheet.`,ok:"Ja, fjern",run:()=>removeSerial(nr,sn)})});
   const sq=$("#serq");if(sq){sq.oninput=()=>{sheet.q=sq.value;const pos=sq.selectionStart;renderSheet();const n=$("#serq");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};sq.onkeydown=e=>{if(e.key==="Enter") act("ser-ok")}}
   const aq=$("#aq");if(aq) aq.oninput=()=>{sheet.q=aq.value;const pos=aq.selectionStart;renderSheet();const n=$("#aq");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
 }
@@ -1283,12 +1306,12 @@ function act(a){
     case "install": if(installEvt){installEvt.prompt();installEvt.userChoice.finally(()=>{installEvt=null;render()})} break;
     case "export": go("export"); break;
     case "merge": go("merge"); break;
-    case "oppsett": go("oppsett"); break;
+    case "oppsett": if(serverUrl()&&!isAdmin()){go("admin");toast("Oppsett krever admin-koden");break} go("oppsett"); break;
     case "admin": go("admin"); if(S.adminPin) adminLoad(); break;
     case "admin-pin": {const v=($("#apin").value||"").trim();if(!v){toast("Skriv admin-koden");return}S.adminPin=v;save();admin.err="";adminLoad();break}
     case "admin-refresh": adminLoad(); break;
     case "admin-xlsx": adminExcel(); break;
-    case "admin-logout": S.adminPin="";admin.data=null;save();render(); break;
+    case "admin-logout": S.adminPin="";S.adminOk=false;admin.data=null;save();render(); break;
     case "download": downloadText(fileName(),buildCSV()); break;
     case "share": shareCSV(); break;
     case "scan": closeSheet(); openScanner(); break;
@@ -1297,6 +1320,8 @@ function act(a){
     case "enter": openEntry(); break;
     case "back-nr": openEntry(); break;
     case "to-edit": openCount(sheet.nr,{edit:true,fromScan:sheet.fromScan}); break;
+    case "del-reg": {const nr=sheet.nr;openSheet({type:"confirm",danger:true,title:`Fjerne ${nr}?`,text:`<b>${esc(nameOf(nr))}</b> fjernes fra ${esc(view.sector)} – også raden i Google Sheet. Tallene kan ikke hentes tilbake. Bruk dette bare ved feilregistrering (feil artikkel eller feil sektor).`,ok:"Ja, fjern registreringen",
+      run:()=>{removeCount(nr);closeSheet();refreshList();toast(`${nr} fjernet fra ${view.sector}`)}});break}
     case "unk-add": {const nr=sheet.nr,ser=sheet.ser,fs=sheet.fromScan;const na=($("#una").value||"").trim();if(!na){toast("Skriv en kort beskrivelse");$("#una").focus();return}
       S.extraNames[nr]=na+" (ikke i register)";save();
       if(ser){closeSheet();registerSerial(nr,ser);openScanner()} else openCount(nr,{fromScan:fs});break}
@@ -1364,7 +1389,7 @@ window.addEventListener("popstate",()=>{
   else toast("Appen lukkes ikke med Tilbake. Alt er lagret i telefonen.");
   backGuard();
 });
-if(serverUrl()&&S.pin){fetchRemoteCfg(false);scheduleSync(500)}
+if(serverUrl()&&S.pin){cfgAt=Date.now();fetchRemoteCfg(false);scheduleSync(500)}
 })();
 </script>
 </body>
