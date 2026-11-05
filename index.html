@@ -297,7 +297,7 @@ tr.conflict td{background:var(--bad-soft)}
 -->
 <script id="appdata" type="application/json">
 {
- "versjon": "2026-11-05 v11 (lister fra Google Sheet)",
+ "versjon": "2026-11-05 v12 (lister fra Google Sheet)",
  "lager": "581 Oslo",
  "tittel": "Telling reservedeler",
  "testdata": false,
@@ -414,6 +414,7 @@ function render(){
   $("#app").classList.toggle("adminwide",view.screen==="admin"&&!!S.adminPin&&!!admin.data);
   if(view.screen==="start") el.innerHTML=startHTML();
   else if(view.screen==="sector") el.innerHTML=sectorHTML();
+  else if(view.screen==="review") el.innerHTML=reviewHTML();
   else if(view.screen==="export") el.innerHTML=exportHTML();
   else if(view.screen==="merge") el.innerHTML=mergeHTML();
   else if(view.screen==="oppsett") el.innerHTML=oppsettHTML();
@@ -423,9 +424,9 @@ function render(){
 }
 function go(screen,extra){closeSheet();closeScanner();clearInterval(admin.timer);admin.timer=null;view=Object.assign({screen,sector:null,filter:"alle",q:""},extra||{});render();window.scrollTo(0,0)}
 
-function bar(title,{back=false,meta="",progress=null}={}){
+function bar(title,{back=false,backAct="home",meta="",progress=null}={}){
   return `<div class="bar"><div class="row">
-    ${back?`<button class="back" data-act="home" aria-label="Tilbake">‹</button>`:""}
+    ${back?`<button class="back" data-act="${backAct}" aria-label="Tilbake">‹</button>`:""}
     <div class="brand">${LOGO_IMG()}<span class="lg">Lager<b>${esc(CFG.lager||"")}</b></span></div>
     <div class="meta">${meta}</div></div>
     <h2>${title}</h2>
@@ -476,6 +477,27 @@ function sectorHTML(){
     <div class="list" id="list">${listHTML()}</div>
   </div>
   <div class="foot"><button class="btn primary block" data-act="finish">Sektor ferdig</button></div>`;
+}
+/* gjennomgang før «Sektor ferdig»: alt som er registrert i sektoren, med tall – trykk på en linje for å rette eller fjerne */
+function reviewHTML(){
+  const code=view.sector;const st=stats(code);const ST=STATS();const miss=sharedGroup(code)?0:st.exp-st.expDone;
+  const items=Object.entries(S.counts[code]||{}).sort((a,b)=>(b[1].n||0)-(a[1].n||0)).map(([nr])=>({nr,na:nameOf(nr),extra:st.exp>0&&!expected(code).includes(nr)}));
+  const tot={};ST.forEach(x=>tot[x.kode]=items.reduce((a,i)=>a+((cnt(code,i.nr).q||{})[x.kode]||0),0));
+  const pend=pendingN();
+  return bar(`Gjennomgang <span style="font-size:15px;font-weight:600;opacity:.8">· ${esc(code)}</span>`,{back:true,backAct:"to-sector",meta:`${esc(S.name||"Uten navn")}<br>${syncBadge()}`})+
+  `<div class="content">
+    <div class="card" style="margin-top:0"><h3>Før du fullfører ${esc(code)}</h3>
+      <div class="kv"><span>Artikler registrert</span><b>${st.reg}</b></div>
+      ${ST.map((x,i)=>`<div class="kv"><span>${esc(x.navn)} totalt</span><b class="c${i}">${fmt(tot[x.kode])}</b></div>`).join("")}
+      ${miss?`<div class="kv"><span>Fra forrige telling, ikke registrert</span><b style="color:var(--warn)">${miss}</b></div>`:""}
+      ${pend?`<div class="banner bad" style="margin:10px 0 0">${pend} registreringer er ikke sendt til serveren ennå. Du kan fullføre – de sendes så snart det er nett.</div>`:""}
+      <p class="hint" style="margin-bottom:0">Sjekk listen. Trykk på en linje for å rette tallet eller fjerne en feilregistrering. ${miss?`<button class="link" data-act="review-missing" style="padding:0">Vis de ${miss} som mangler fra listen</button>`:""}</p>
+    </div>
+    <div class="list" id="list">${items.length?items.map(i=>`<button class="item counted ${i.extra?"extra":""}" data-nr="${esc(i.nr)}">
+      <span class="t"><span class="nr mono">${esc(i.nr)}${i.extra?' · <span class="pill warn">ikke på liste</span>':""}</span><span class="na">${esc(i.na)}</span></span>${qtyHTML(code,i.nr)}</button>`).join("")
+      :`<div class="empty-state">Ingen artikler registrert i ${esc(code)}.<br>Fullfører du nå, meldes sektoren som tom.</div>`}</div>
+  </div>
+  <div class="foot"><button class="btn ghost" data-act="to-sector">‹ Tell videre</button><button class="btn primary grow" data-act="finish-ok">Bekreft – sektor ferdig</button></div>`;
 }
 function filtered(){
   const code=view.sector;const q=view.q.trim().toLowerCase();const exp=expected(code);let it;
@@ -895,7 +917,7 @@ function key(k){
   sheet.vals[sheet.st]=e;renderSheet();
 }
 
-function refreshList(){if(view.screen!=="sector") return;const y=window.scrollY;render();window.scrollTo(0,y)}
+function refreshList(){if(view.screen!=="sector"&&view.screen!=="review") return;const y=window.scrollY;render();window.scrollTo(0,y)}
 function updateListOnly(){const l=$("#list");if(l){l.innerHTML=listHTML();bindList()}}
 function scrollToItem(nr){const b=document.querySelector(`.item[data-nr="${CSS.escape(nr)}"]`);if(b) b.scrollIntoView({block:"center",behavior:"smooth"})}
 
@@ -1081,7 +1103,7 @@ async function sync(){
     else{(j.acked||[]).forEach(([k,v])=>{if(S.dirty[k]===v) delete S.dirty[k];if(S.del[k]===v) delete S.del[k]});S.lastSync=nowStr();save();
       syncState={status:"ok"};again=pendingN()>0&&keys.length>150}
   }catch(e){syncState={status:"offline"}}
-  syncing=false;updateSyncBadge();
+  syncing=false;updateSyncBadge();if(view.screen==="review"&&!sheet.type) refreshList();
   if(again) scheduleSync(50); else if(pendingN()&&syncState.status!=="pin") scheduleSync(15000);
 }
 async function fetchRemoteCfg(force){
@@ -1326,7 +1348,9 @@ function act(a){
       S.extraNames[nr]=na+" (ikke i register)";save();
       if(ser){closeSheet();registerSerial(nr,ser);openScanner()} else openCount(nr,{fromScan:fs});break}
     case "unk-retype": openEntry(sheet.nr); break;
-    case "finish": openSheet({type:"finish"}); break;
+    case "finish": go("review",{sector:view.sector}); break;
+    case "to-sector": go("sector",{sector:view.sector}); break;
+    case "review-missing": go("sector",{sector:view.sector,filter:"mangler"}); break;
     case "finish-ok": S.done[view.sector]=true;markSectorDirty(view.sector);save();scheduleSync(100);toast(`${view.sector} ferdig`);go("start");break;
     case "pin-ok": {const v=($("#pin").value||"").trim();if(!v){toast("Skriv koden");return}S.pin=v;syncState={status:"busy"};save();render();fetchRemoteCfg(true);scheduleSync(100);break}
     case "srv-save": saveServer(); break;
@@ -1385,6 +1409,7 @@ window.addEventListener("popstate",()=>{
   guardArmed=false;
   if($("#scanner").classList.contains("open")) closeScanner();
   else if(sheet.type) closeSheet();
+  else if(view.screen==="review") go("sector",{sector:view.sector});
   else if(view.screen!=="start") go("start");
   else toast("Appen lukkes ikke med Tilbake. Alt er lagret i telefonen.");
   backGuard();
